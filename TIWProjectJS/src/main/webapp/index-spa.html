@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aste Online - Single Page Application</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Container principale dell'applicazione -->
+    <div id="app">
+        <!-- Header dell'applicazione -->
+        <div class="header">
+            <h1>🎯 Aste Online - SPA</h1>
+            <div class="nav-links" id="navigation" style="display: none;">
+                <button id="btn-vendo" class="nav-btn">📦 Vendo</button>
+                <button id="btn-acquisto" class="nav-btn">🛒 Acquisto</button>
+                <button id="btn-logout" class="nav-btn">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Container per il contenuto dinamico -->
+        <div class="container">
+            <!-- Informazioni utente (nascosto inizialmente) -->
+            <div class="user-info" id="user-info" style="display: none;">
+                Benvenuto, <span id="user-name"></span>
+            </div>
+
+            <!-- Form di login (mostrato inizialmente) -->
+            <div class="login-container" id="login-form">
+                <h1>🎯 Aste Online</h1>
+                <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                    Sistema di aste online - Versione JavaScript
+                </p>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">👤 Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">🔒 Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%;">🚀 Login</button>
+                </form>
+
+                <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+                    <h4>📋 Account Demo:</h4>
+                    <p><strong>Username:</strong> admin<br>
+                       <strong>Password:</strong> admin123</p>
+                    <p><strong>Username:</strong> utente1<br>
+                       <strong>Password:</strong> pass123</p>
+                </div>
+            </div>
+
+            <!-- Container per il contenuto principale (nascosto inizialmente) -->
+            <div id="main-content" style="display: none;">
+                <!-- Il contenuto sarà caricato dinamicamente qui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principale -->
+    <script src="js/app.js"></script>
+</body>
+</html>
