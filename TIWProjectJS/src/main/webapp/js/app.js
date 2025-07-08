@@ -1,28 +1,35 @@
 // Classe principale per l'applicazione SPA
+// Classe principale per l'applicazione SPA Aste Online
 class AsteOnlineApp {
     constructor() {
         this.currentUser = null;
         this.currentPage = null;
         this.lastAction = null;
         this.visitedAuctions = [];
-        
+        this.apiClient = new APIClient();
+
         // Carica dati da localStorage se disponibili
         this.loadUserPreferences();
-        
+
         this.init();
     }
 
     init() {
         console.log('🚀 Inizializzazione Aste Online SPA');
-        
+
         // Event listeners per i pulsanti di navigazione
         document.getElementById('btn-vendo').addEventListener('click', () => this.showVendoPage());
         document.getElementById('btn-acquisto').addEventListener('click', () => this.showAcquistoPage());
         document.getElementById('btn-logout').addEventListener('click', () => this.logout());
-        
-        // Event listener per il form di login
+
+        // Event listeners per i form di auth
         document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
-        
+        document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+
+        // Pulsanti per mostrare login/register
+        document.getElementById('btn-show-register').addEventListener('click', () => this.showRegisterForm());
+        document.getElementById('btn-show-login').addEventListener('click', () => this.showLoginForm());
+
         // Controlla se l'utente ha già effettuato l'accesso
         if (this.currentUser) {
             this.showMainInterface();
@@ -30,127 +37,146 @@ class AsteOnlineApp {
         }
     }
 
-    // Gestione del login
+    // ===== GESTIONE AUTENTICAZIONE =====
+
     async handleLogin(event) {
         event.preventDefault();
-        
+
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        
+
         console.log('🔐 Tentativo di login per:', username);
-        
+
         try {
-            const response = await fetch('/TIWProject/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password })
-            });
-            
-            if (response.ok) {
-                const userData = await response.json();
-                this.currentUser = userData;
-                console.log('✅ Login successful:', userData);
-                
-                this.showMainInterface();
-                this.decidePaginaIniziale();
-            } else {
-                const error = await response.text();
-                this.showError('❌ ' + error);
-            }
+            this.showLoading();
+            const userData = await this.apiClient.login(username, password);
+
+            this.currentUser = userData;
+            console.log('✅ Login successful:', userData);
+
+            this.saveUserPreferences();
+            this.showMainInterface();
+            this.decidePaginaIniziale();
+
         } catch (error) {
             console.error('❌ Errore di login:', error);
-            this.showError('❌ Errore di connessione al server');
+            DOMUtils.showError('❌ ' + error.message);
+        } finally {
+            this.hideLoading();
         }
     }
 
-    // Decide quale pagina mostrare al login
+    async handleRegister(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const userData = {
+            username: formData.get('username'),
+            password: formData.get('password'),
+            confirmPassword: formData.get('confirmPassword'),
+            nome: formData.get('nome'),
+            cognome: formData.get('cognome'),
+            indirizzo: formData.get('indirizzo')
+        };
+
+        // Validazione client-side
+        const errors = ValidationUtils.validateRegistration(userData);
+        if (errors.length > 0) {
+            DOMUtils.showError('❌ ' + errors.join('<br>'));
+            return;
+        }
+
+        try {
+            this.showLoading();
+            await this.apiClient.register(userData);
+
+            DOMUtils.showSuccess('✅ Registrazione completata! Ora puoi accedere.');
+            this.showLoginForm();
+
+        } catch (error) {
+            console.error('❌ Errore registrazione:', error);
+            DOMUtils.showError('❌ ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    showLoginForm() {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('loginForm').reset();
+    }
+
+    showRegisterForm() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+        document.getElementById('registerForm').reset();
+    }
+
+    // ===== INTERFACCIA PRINCIPALE =====
+
+    showMainInterface() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('navigation').style.display = 'block';
+        document.getElementById('user-info').style.display = 'block';
+        document.getElementById('main-content').style.display = 'block';
+
+        // Aggiorna il nome utente
+        document.getElementById('user-name').textContent = this.currentUser.nomeCompleto;
+    }
+
     decidePaginaIniziale() {
         if (!this.currentUser) return;
-        
+
         // Se è il primo accesso, mostra Acquisto
         if (!this.lastAction) {
             console.log('🆕 Primo accesso - Mostro pagina Acquisto');
             this.showAcquistoPage();
             return;
         }
-        
+
         // Se l'ultima azione è stata creare un'asta, mostra Vendo
         if (this.lastAction === 'crea_asta') {
             console.log('📦 Ultima azione: crea asta - Mostro pagina Vendo');
             this.showVendoPage();
         } else {
-            // Altrimenti mostra Acquisto con le aste visitate
-            console.log('🛒 Mostro pagina Acquisto con aste visitate');
+            console.log('🛒 Mostro pagina Acquisto');
             this.showAcquistoPage();
         }
     }
 
-    // Mostra l'interfaccia principale
-    showMainInterface() {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('navigation').style.display = 'block';
-        document.getElementById('user-info').style.display = 'block';
-        document.getElementById('main-content').style.display = 'block';
-        
-        // Aggiorna il nome utente
-        document.getElementById('user-name').textContent = this.currentUser.nomeCompleto;
-    }
+    // ===== PAGINA VENDO =====
 
-    // Mostra la pagina Vendo
     async showVendoPage() {
         console.log('📦 Caricamento pagina Vendo');
         this.currentPage = 'vendo';
-        
+        DOMUtils.highlightActiveNavButton('btn-vendo');
+
         try {
+            this.showLoading();
+
             // Carica dati per la pagina Vendo
             const [asteAperte, asteChiuse, articoli] = await Promise.all([
-                this.fetchAsteByVenditore(false),
-                this.fetchAsteByVenditore(true),
-                this.fetchArticoliDisponibili()
+                this.apiClient.getAsteByVenditore(false),
+                this.apiClient.getAsteByVenditore(true),
+                this.apiClient.getArticoliDisponibili()
             ]);
-            
+
             const content = this.generateVendoHTML(asteAperte, asteChiuse, articoli);
             document.getElementById('main-content').innerHTML = content;
-            
+
             // Aggiungi event listeners per i form
             this.setupVendoEventListeners();
-            
+
         } catch (error) {
             console.error('❌ Errore caricamento pagina Vendo:', error);
-            this.showError('Errore nel caricamento della pagina Vendo');
+            DOMUtils.showError('Errore nel caricamento della pagina Vendo');
+        } finally {
+            this.hideLoading();
         }
     }
 
-    // Mostra la pagina Acquisto
-    async showAcquistoPage() {
-        console.log('🛒 Caricamento pagina Acquisto');
-        this.currentPage = 'acquisto';
-        
-        try {
-            // Carica le aste vinte
-            const asteVinte = await this.fetchAsteVinte();
-            
-            // Carica le aste visitate se presenti
-            let asteVisitate = [];
-            if (this.visitedAuctions.length > 0) {
-                asteVisitate = await this.fetchAsteByIds(this.visitedAuctions);
-            }
-            
-            const content = this.generateAcquistoHTML(null, asteVinte, asteVisitate);
-            document.getElementById('main-content').innerHTML = content;
-            
-            // Aggiungi event listeners
-            this.setupAcquistoEventListeners();
-            
-        } catch (error) {
-            console.error('❌ Errore caricamento pagina Acquisto:', error);
-            this.showError('Errore nel caricamento della pagina Acquisto');
-        }
-    }
-
-    // Genera HTML per la pagina Vendo
     generateVendoHTML(asteAperte, asteChiuse, articoli) {
         return `
             <!-- Form per creare nuovo articolo -->
@@ -190,8 +216,8 @@ class AsteOnlineApp {
                                     <input type="checkbox" id="art${art.id}" name="articoli" value="${art.id}">
                                     <label for="art${art.id}">
                                         <strong>${art.codice} - ${art.nome}</strong>
-                                        <br>💰 €${art.prezzo.toFixed(2)}
-                                        <br><small>${art.descrizione}</small>
+                                        <br>💰 ${FormatUtils.formatPrice(art.prezzo)}
+                                        <br><small>${FormatUtils.truncateString(art.descrizione, 60)}</small>
                                     </label>
                                 </div>
                             `).join('')}
@@ -207,6 +233,7 @@ class AsteOnlineApp {
                             <label for="scadenza">⏰ Scadenza:</label>
                             <input type="text" id="scadenza" name="scadenza" 
                                    placeholder="dd-MM-yyyy HH:mm" required>
+                            <small>Formato: dd-MM-yyyy HH:mm (es. 15-01-2025 18:00)</small>
                         </div>
                     </div>
                     
@@ -223,7 +250,121 @@ class AsteOnlineApp {
         `;
     }
 
-    // Genera HTML per la pagina Acquisto
+    setupVendoEventListeners() {
+        // Form creazione articolo
+        const formArticolo = document.getElementById('form-articolo');
+        if (formArticolo) {
+            formArticolo.addEventListener('submit', (e) => this.handleCreaArticolo(e));
+        }
+
+        // Form creazione asta
+        const formAsta = document.getElementById('form-asta');
+        if (formAsta) {
+            formAsta.addEventListener('submit', (e) => this.handleCreaAsta(e));
+        }
+    }
+
+    async handleCreaArticolo(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const articolo = {
+            codice: formData.get('codice'),
+            nome: formData.get('nome'),
+            descrizione: formData.get('descrizione'),
+            prezzo: parseFloat(formData.get('prezzo'))
+        };
+
+        // Validazione
+        const errors = ValidationUtils.validateArticolo(articolo);
+        if (errors.length > 0) {
+            DOMUtils.showError('❌ ' + errors.join('<br>'));
+            return;
+        }
+
+        try {
+            this.showLoading();
+            await this.apiClient.createArticolo(articolo);
+            DOMUtils.showSuccess('✅ Articolo creato con successo!');
+            this.showVendoPage(); // Ricarica la pagina
+        } catch (error) {
+            console.error('❌ Errore creazione articolo:', error);
+            DOMUtils.showError('❌ ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async handleCreaAsta(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const articoliSelezionati = Array.from(document.querySelectorAll('input[name="articoli"]:checked'))
+            .map(cb => parseInt(cb.value));
+
+        const asta = {
+            articoli: articoliSelezionati,
+            rialzoMinimo: parseInt(formData.get('rialzo')),
+            scadenza: formData.get('scadenza')
+        };
+
+        // Validazione
+        const errors = ValidationUtils.validateAsta(asta);
+        if (errors.length > 0) {
+            DOMUtils.showError('❌ ' + errors.join('<br>'));
+            return;
+        }
+
+        try {
+            this.showLoading();
+            await this.apiClient.createAsta(asta);
+
+            this.lastAction = 'crea_asta';
+            this.saveUserPreferences();
+
+            DOMUtils.showSuccess('✅ Asta creata con successo!');
+            this.showVendoPage(); // Ricarica la pagina
+        } catch (error) {
+            console.error('❌ Errore creazione asta:', error);
+            DOMUtils.showError('❌ ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    // ===== PAGINA ACQUISTO =====
+
+    async showAcquistoPage() {
+        console.log('🛒 Caricamento pagina Acquisto');
+        this.currentPage = 'acquisto';
+        DOMUtils.highlightActiveNavButton('btn-acquisto');
+
+        try {
+            this.showLoading();
+
+            // Carica le aste vinte
+            const asteVinte = await this.apiClient.getAsteVinte();
+
+            // Carica le aste visitate se presenti
+            let asteVisitate = [];
+            if (this.visitedAuctions.length > 0) {
+                asteVisitate = await this.apiClient.getAsteByIds(this.visitedAuctions);
+            }
+
+            const content = this.generateAcquistoHTML(null, asteVinte, asteVisitate);
+            document.getElementById('main-content').innerHTML = content;
+
+            // Aggiungi event listeners
+            this.setupAcquistoEventListeners();
+
+        } catch (error) {
+            console.error('❌ Errore caricamento pagina Acquisto:', error);
+            DOMUtils.showError('Errore nel caricamento della pagina Acquisto');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
     generateAcquistoHTML(risultatiRicerca, asteVinte, asteVisitate) {
         return `
             <!-- Form di ricerca -->
@@ -247,7 +388,7 @@ class AsteOnlineApp {
             <!-- Aste visitate -->
             ${asteVisitate.length > 0 ? `
                 <div class="table-container">
-                    <h3>👁️ Aste Visitate Ancora Aperte</h3>
+                    <h3>👁️ Aste Visitate Ancora Aperte (${asteVisitate.length})</h3>
                     ${this.generateAsteRicercaTable(asteVisitate)}
                 </div>
             ` : ''}
@@ -255,20 +396,60 @@ class AsteOnlineApp {
             <!-- Aste vinte -->
             ${asteVinte.length > 0 ? `
                 <div class="table-container">
-                    <h3>🏆 Le Mie Aste Vinte</h3>
+                    <h3>🏆 Le Mie Aste Vinte (${asteVinte.length})</h3>
                     ${this.generateAsteVinteTable(asteVinte)}
+                </div>
+            ` : ''}
+
+            ${!risultatiRicerca && asteVinte.length === 0 && asteVisitate.length === 0 ? `
+                <div class="alert alert-info">
+                    🛒 <strong>Inizia a cercare!</strong> Usa il campo di ricerca sopra per trovare aste interessanti.
                 </div>
             ` : ''}
         `;
     }
 
-    // Genera tabella delle aste per la pagina Vendo
+    setupAcquistoEventListeners() {
+        // Form ricerca
+        const formRicerca = document.getElementById('form-ricerca');
+        if (formRicerca) {
+            formRicerca.addEventListener('submit', (e) => this.handleRicercaAste(e));
+        }
+    }
+
+    async handleRicercaAste(event) {
+        event.preventDefault();
+
+        const parolaChiave = document.getElementById('parola-chiave').value.trim();
+
+        if (!parolaChiave) {
+            DOMUtils.showError('❌ Inserisci una parola chiave per la ricerca');
+            return;
+        }
+
+        try {
+            this.showLoading();
+            const aste = await this.apiClient.searchAste(parolaChiave);
+
+            const risultatiHTML = this.generateRisultatiRicerca(aste, parolaChiave);
+            document.getElementById('risultati-ricerca').innerHTML = risultatiHTML;
+
+        } catch (error) {
+            console.error('❌ Errore ricerca:', error);
+            DOMUtils.showError('❌ Errore nella ricerca: ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    // ===== GENERAZIONE HTML =====
+
     generateAsteTable(aste, titolo, aperte) {
         if (!aste || aste.length === 0) return '';
-        
+
         return `
             <div class="table-container">
-                <h3>${aperte ? '🟢' : '🔴'} ${titolo}</h3>
+                <h3>${aperte ? '🟢' : '🔴'} ${titolo} (${aste.length})</h3>
                 <table>
                     <tr>
                         <th>Articoli</th>
@@ -282,19 +463,19 @@ class AsteOnlineApp {
                             <td>
                                 ${asta.articoli.map(art => `<strong>${art.codice}</strong> - ${art.nome}`).join('<br>')}
                             </td>
-                            <td>€${asta.prezzoIniziale.toFixed(2)}</td>
-                            <td>€${asta.offertaMassima.toFixed(2)}</td>
+                            <td>${FormatUtils.formatPrice(asta.prezzoIniziale)}</td>
+                            <td><strong style="color: #27ae60;">${FormatUtils.formatPrice(asta.offertaMassima)}</strong></td>
                             <td>
-                                ${aperte ? 
-                                    `<span class="status-${asta.scaduta ? 'closed' : 'open'}">${this.getTempoRimanente(asta.scadenza)}</span>` :
-                                    `<span class="${asta.vincitoreId ? 'status-open' : 'status-closed'}">${asta.vincitoreId ? 'VENDUTO' : 'NON VENDUTO'}</span>`
-                                }
+                                ${aperte ?
+            `<span class="status-${DateUtils.isScaduta(asta.scadenza) ? 'closed' : 'open'}">${DateUtils.getTempoRimanente(asta.scadenza)}</span>` :
+            `<span class="${asta.vincitoreId ? 'status-open' : 'status-closed'}">${asta.vincitoreId ? '🏆 VENDUTO' : '❌ NON VENDUTO'}</span>`
+        }
                             </td>
                             <td>
                                 <button class="link-button" onclick="app.mostraDettaglioAsta(${asta.id})">📋 Dettagli</button>
-                                ${aperte && asta.scaduta && !asta.chiusa ? 
-                                    `<button class="btn btn-danger btn-sm" onclick="app.chiudiAsta(${asta.id})">🔒 Chiudi</button>` : ''
-                                }
+                                ${aperte && DateUtils.isScaduta(asta.scadenza) && !asta.chiusa ?
+            `<br><button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px; margin-top: 5px;" onclick="app.chiudiAsta(${asta.id})">🔒 Chiudi</button>` : ''
+        }
                             </td>
                         </tr>
                     `).join('')}
@@ -303,129 +484,123 @@ class AsteOnlineApp {
         `;
     }
 
-    // Setup event listeners per la pagina Vendo
-    setupVendoEventListeners() {
-        // Form creazione articolo
-        const formArticolo = document.getElementById('form-articolo');
-        if (formArticolo) {
-            formArticolo.addEventListener('submit', (e) => this.handleCreaArticolo(e));
+    generateRisultatiRicerca(aste, parolaChiave = '') {
+        if (!aste || aste.length === 0) {
+            return parolaChiave ? `
+                <div class="alert alert-info">
+                    🔍 <strong>Nessuna asta trovata</strong> per la parola chiave: "${parolaChiave}"
+                    <br>Prova con termini diversi o controlla l'ortografia.
+                </div>
+            ` : '';
         }
 
-        // Form creazione asta
-        const formAsta = document.getElementById('form-asta');
-        if (formAsta) {
-            formAsta.addEventListener('submit', (e) => this.handleCreaAsta(e));
-        }
+        return `
+            <div class="table-container">
+                <h3>📋 Risultati Ricerca${parolaChiave ? ` per: "${parolaChiave}"` : ''} (${aste.length})</h3>
+                ${this.generateAsteRicercaTable(aste)}
+            </div>
+        `;
     }
 
-    // Setup event listeners per la pagina Acquisto
-    setupAcquistoEventListeners() {
-        // Form ricerca
-        const formRicerca = document.getElementById('form-ricerca');
-        if (formRicerca) {
-            formRicerca.addEventListener('submit', (e) => this.handleRicercaAste(e));
+    generateAsteRicercaTable(aste) {
+        return `
+            <table>
+                <tr>
+                    <th>Articoli</th>
+                    <th>Prezzo Attuale</th>
+                    <th>Tempo Rimanente</th>
+                    <th>Stato</th>
+                    <th>Azioni</th>
+                </tr>
+                ${aste.map(asta => `
+                    <tr>
+                        <td>
+                            ${asta.articoli.map(art => `
+                                <div style="margin-bottom: 8px;">
+                                    <strong>${art.codice} - ${art.nome}</strong><br>
+                                    <small>${FormatUtils.truncateString(art.descrizione, 50)}</small>
+                                </div>
+                            `).join('')}
+                        </td>
+                        <td>
+                            <strong>${FormatUtils.formatPrice(asta.offertaMassima || asta.prezzoIniziale)}</strong>
+                            <br><small>Rialzo min: ${FormatUtils.formatPrice(asta.rialzoMinimo)}</small>
+                        </td>
+                        <td>
+                            <span class="status-${DateUtils.isScaduta(asta.scadenza) ? 'closed' : 'open'}">
+                                ${DateUtils.getTempoRimanente(asta.scadenza)}
+                            </span>
+                        </td>
+                        <td>
+                            ${asta.chiusa ?
+            `<span class="status-closed">🔴 Chiusa</span>` :
+            DateUtils.isScaduta(asta.scadenza) ?
+                `<span class="status-closed">⏰ Scaduta</span>` :
+                `<span class="status-open">🟢 Aperta</span>`
         }
+                        </td>
+                        <td>
+                            ${!asta.chiusa && !DateUtils.isScaduta(asta.scadenza) ?
+            `<button class="btn btn-success" onclick="app.mostraFormOfferta(${asta.id})" style="font-size: 12px;">💰 Fai Offerta</button>` :
+            `<span style="color: #888;">Non disponibile</span>`
+        }
+                            <br><button class="link-button" onclick="app.mostraDettaglioAsta(${asta.id})" style="font-size: 11px; margin-top: 5px;">📋 Dettagli</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </table>
+        `;
     }
 
-    // Gestione creazione articolo
-    async handleCreaArticolo(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(event.target);
-        const articolo = {
-            codice: formData.get('codice'),
-            nome: formData.get('nome'),
-            descrizione: formData.get('descrizione'),
-            prezzo: parseFloat(formData.get('prezzo'))
-        };
-        
-        try {
-            const response = await fetch('/TIWProject/api/articoli', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(articolo)
-            });
-            
-            if (response.ok) {
-                this.showSuccess('✅ Articolo creato con successo!');
-                this.showVendoPage(); // Ricarica la pagina
-            } else {
-                const error = await response.text();
-                this.showError('❌ ' + error);
-            }
-        } catch (error) {
-            console.error('❌ Errore creazione articolo:', error);
-            this.showError('❌ Errore di connessione');
-        }
+    generateAsteVinteTable(asteVinte) {
+        return `
+            <table>
+                <tr>
+                    <th>📦 Articoli</th>
+                    <th>💰 Prezzo Pagato</th>
+                    <th>📅 Data Aggiudicazione</th>
+                    <th>⚙️ Azioni</th>
+                </tr>
+                ${asteVinte.map(asta => `
+                    <tr style="background-color: #f0f8ff; border-left: 4px solid #27ae60;">
+                        <td>
+                            ${asta.articoli.map(art => `
+                                <div style="margin-bottom: 8px;">
+                                    <strong style="color: #2c3e50;">${art.codice} - ${art.nome}</strong><br>
+                                    <small style="color: #666;">${FormatUtils.truncateString(art.descrizione, 60)}</small><br>
+                                    <small style="color: #888;">Valore base: ${FormatUtils.formatPrice(art.prezzo)}</small>
+                                </div>
+                            `).join('')}
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <span style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 8px 12px; border-radius: 15px; font-weight: bold; display: inline-block;">
+                                    🏆 ${FormatUtils.formatPrice(asta.prezzoFinale)}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <strong style="color: #2c3e50;">${DateUtils.formatDateTime(asta.scadenza)}</strong>
+                        </td>
+                        <td>
+                            <button class="link-button" onclick="app.mostraDettaglioAsta(${asta.id})" style="font-size: 12px;">
+                                📋 Dettagli Completi
+                            </button>
+                            <div style="font-size: 10px; color: #666; text-align: center; margin-top: 5px;">
+                                <em>Asta #${asta.id}</em>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('')}
+            </table>
+        `;
     }
 
-    // Gestione creazione asta
-    async handleCreaAsta(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(event.target);
-        const articoliSelezionati = Array.from(document.querySelectorAll('input[name="articoli"]:checked'))
-            .map(cb => parseInt(cb.value));
-        
-        if (articoliSelezionati.length === 0) {
-            this.showError('❌ Seleziona almeno un articolo');
-            return;
-        }
-        
-        const asta = {
-            articoli: articoliSelezionati,
-            rialzoMinimo: parseInt(formData.get('rialzo')),
-            scadenza: formData.get('scadenza')
-        };
-        
-        try {
-            const response = await fetch('/TIWProject/api/aste', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(asta)
-            });
-            
-            if (response.ok) {
-                this.lastAction = 'crea_asta';
-                this.saveUserPreferences();
-                this.showSuccess('✅ Asta creata con successo!');
-                this.showVendoPage(); // Ricarica la pagina
-            } else {
-                const error = await response.text();
-                this.showError('❌ ' + error);
-            }
-        } catch (error) {
-            console.error('❌ Errore creazione asta:', error);
-            this.showError('❌ Errore di connessione');
-        }
-    }
+    // ===== DETTAGLIO ASTA =====
 
-    // Gestione ricerca aste
-    async handleRicercaAste(event) {
-        event.preventDefault();
-        
-        const parolaChiave = document.getElementById('parola-chiave').value;
-        
-        try {
-            const response = await fetch(`/TIWProject/api/aste/search?q=${encodeURIComponent(parolaChiave)}`);
-            
-            if (response.ok) {
-                const aste = await response.json();
-                const risultatiHTML = this.generateRisultatiRicerca(aste);
-                document.getElementById('risultati-ricerca').innerHTML = risultatiHTML;
-            } else {
-                this.showError('❌ Errore nella ricerca');
-            }
-        } catch (error) {
-            console.error('❌ Errore ricerca:', error);
-            this.showError('❌ Errore di connessione');
-        }
-    }
-
-    // Mostra dettaglio asta
     async mostraDettaglioAsta(astaId) {
         console.log('📋 Caricamento dettaglio asta:', astaId);
-        
+
         // Aggiungi alle aste visitate se siamo nella pagina acquisto
         if (this.currentPage === 'acquisto') {
             if (!this.visitedAuctions.includes(astaId)) {
@@ -433,125 +608,482 @@ class AsteOnlineApp {
                 this.saveUserPreferences();
             }
         }
-        
+
         try {
-            const response = await fetch(`/TIWProject/api/aste/${astaId}`);
-            if (response.ok) {
-                const asta = await response.json();
-                const dettaglioHTML = this.generateDettaglioAsta(asta);
-                document.getElementById('main-content').innerHTML = dettaglioHTML;
-                this.setupDettaglioEventListeners(astaId);
-            }
+            this.showLoading();
+
+            const [asta, offerte] = await Promise.all([
+                this.apiClient.getAstaById(astaId),
+                this.apiClient.getOfferteByAsta(astaId)
+            ]);
+
+            const dettaglioHTML = this.generateDettaglioAsta(asta, offerte);
+            document.getElementById('main-content').innerHTML = dettaglioHTML;
+            this.setupDettaglioEventListeners(astaId);
+
         } catch (error) {
             console.error('❌ Errore caricamento dettaglio:', error);
-            this.showError('❌ Errore nel caricamento');
+            DOMUtils.showError('❌ Errore nel caricamento: ' + error.message);
+        } finally {
+            this.hideLoading();
         }
     }
 
-    // API calls
-    async fetchAsteByVenditore(chiuse) {
-        const response = await fetch(`/TIWProject/api/aste/venditore?chiuse=${chiuse}`);
-        return response.ok ? await response.json() : [];
+    generateDettaglioAsta(asta, offerte) {
+        const isVenditore = asta.venditoreId === this.currentUser.id;
+        const isVincitore = asta.vincitoreId === this.currentUser.id;
+        const isPartecipante = offerte.some(o => o.offerenteId === this.currentUser.id);
+
+        return `
+            <div class="form-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Dettagli Asta #${asta.id}</h2>
+                    <div>
+                        ${isVenditore ? '<span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">TUA ASTA</span>' : ''}
+                        ${isVincitore ? '<span style="background: #27ae60; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">HAI VINTO</span>' : ''}
+                        ${isPartecipante && !isVincitore ? '<span style="background: #f39c12; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">HAI PARTECIPATO</span>' : ''}
+                    </div>
+                </div>
+
+                <!-- Badge stato asta -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    ${asta.chiusa ?
+            (asta.vincitoreId ?
+                    '<div style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 15px 25px; border-radius: 25px; display: inline-block; font-size: 18px; font-weight: bold;">🏆 ASTA CONCLUSA - VENDUTA</div>' :
+                    '<div style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 15px 25px; border-radius: 25px; display: inline-block; font-size: 18px; font-weight: bold;">❌ ASTA CONCLUSA - NON VENDUTA</div>'
+            ) :
+            DateUtils.isScaduta(asta.scadenza) ?
+                `<div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 15px 25px; border-radius: 25px; display: inline-block; font-size: 18px; font-weight: bold;">
+                                ⏰ ASTA SCADUTA
+                                ${isVenditore ? `<button onclick="app.chiudiAsta(${asta.id})" class="btn btn-danger" style="margin-left: 15px; font-size: 14px; padding: 8px 15px;">🔒 Chiudi Asta</button>` : ''}
+                            </div>` :
+                '<div style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 15px 25px; border-radius: 25px; display: inline-block; font-size: 18px; font-weight: bold;">🟢 ASTA ATTIVA</div>'
+        }
+                </div>
+
+                <!-- Articoli -->
+                <div class="form-group">
+                    <label>📦 Articoli in Asta:</label>
+                    ${asta.articoli.map(art => `
+                        <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f9f9f9;">
+                            <h4 style="color: #2c3e50; margin-bottom: 10px;">
+                                ${art.codice} - ${art.nome}
+                            </h4>
+                            <p style="margin-bottom: 10px;">${art.descrizione}</p>
+                            ${art.immagine ? `
+                                <div style="text-align: center; margin: 10px 0;">
+                                    <img src="uploads/images/${art.immagine}" alt="${art.nome}"
+                                         style="max-width: 300px; height: auto; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                </div>
+                            ` : ''}
+                            <p><strong>💰 Prezzo base: ${FormatUtils.formatPrice(art.prezzo)}</strong></p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- Informazioni asta -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div class="form-group">
+                        <label>Prezzo Iniziale:</label>
+                        <p style="font-size: 18px; font-weight: bold; color: #3498db;">${FormatUtils.formatPrice(asta.prezzoIniziale)}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Rialzo Minimo:</label>
+                        <p style="font-size: 18px; font-weight: bold; color: #e74c3c;">${FormatUtils.formatPrice(asta.rialzoMinimo)}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>⏰ Scadenza:</label>
+                        <p style="font-size: 16px; font-weight: bold;">${DateUtils.formatDateTime(asta.scadenza)}</p>
+                        ${!asta.chiusa && !DateUtils.isScaduta(asta.scadenza) ?
+            `<p style="color: #e74c3c; font-weight: bold;">${DateUtils.getTempoRimanente(asta.scadenza)}</p>` : ''
+        }
+                    </div>
+                    <div class="form-group">
+                        <label>Offerta Attuale:</label>
+                        <p style="font-size: 18px; font-weight: bold; color: #27ae60;">${FormatUtils.formatPrice(asta.offertaMassima || asta.prezzoIniziale)}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risultato asta se chiusa -->
+            ${asta.chiusa && asta.vincitoreId ? `
+                <div class="form-container">
+                    <div style="background: linear-gradient(135deg, #d4edda, #c3e6cb); padding: 20px; border-radius: 10px; border-left: 5px solid #28a745;">
+                        <h4 style="color: #155724; margin-bottom: 15px;">🏆 Asta Aggiudicata</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                            <div>
+                                <h5 style="color: #155724;">Vincitore:</h5>
+                                <p style="font-size: 18px; font-weight: bold; color: #2c3e50;">Utente #${asta.vincitoreId}</p>
+                            </div>
+                            <div>
+                                <h5 style="color: #155724;">Prezzo Finale:</h5>
+                                <p style="font-size: 24px; font-weight: bold; color: #27ae60;">${FormatUtils.formatPrice(asta.prezzoFinale)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Lista offerte -->
+            ${offerte && offerte.length > 0 ? `
+                <div class="table-container">
+                    <h3>💰 Cronologia Offerte (${offerte.length})</h3>
+                    <table>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Offerente</th>
+                            <th>Importo</th>
+                            <th>Data/Ora</th>
+                            <th>Status</th>
+                        </tr>
+                        ${offerte.map((offerta, i) => `
+                            <tr style="${i === 0 ? 'background-color: #f0f8ff; font-weight: bold;' : ''} ${offerta.offerenteId === this.currentUser.id ? 'border-left: 4px solid #3498db;' : ''}">
+                                <td style="text-align: center;">
+                                    ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                                </td>
+                                <td>
+                                    ${offerta.nomeOfferente || `Utente #${offerta.offerenteId}`}
+                                    ${offerta.offerenteId === this.currentUser.id ?
+            '<span style="background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">TU</span>' : ''
+        }
+                                </td>
+                                <td>
+                                    <span style="${i === 0 ? 'color: #27ae60; font-size: 18px;' : ''}">
+                                        ${FormatUtils.formatPrice(offerta.importo)}
+                                    </span>
+                                </td>
+                                <td>${DateUtils.formatDateTime(offerta.dataOfferta)}</td>
+                                <td>
+                                    ${i === 0 && asta.chiusa ?
+            '<span class="status-open">🏆 VINCENTE</span>' :
+            i === 0 && !asta.chiusa ?
+                '<span class="status-open">👑 IN TESTA</span>' :
+                `<span style="color: #666;">#${i + 1}</span>`
+        }
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            ` : `
+                <div class="alert alert-info">
+                    📭 <strong>Nessuna offerta ancora ricevuta.</strong>
+                    ${!asta.chiusa && !DateUtils.isScaduta(asta.scadenza) ? 'Sii il primo a fare un\'offerta!' : ''}
+                </div>
+            `}
+
+            <!-- Pulsante per fare offerta -->
+            ${!asta.chiusa && !DateUtils.isScaduta(asta.scadenza) && !isVenditore ? `
+                <div style="text-align: center; margin: 30px 0;">
+                    <button onclick="app.mostraFormOfferta(${asta.id})" class="btn btn-success" style="font-size: 18px; padding: 15px 30px;">
+                        💰 Fai la tua Offerta
+                    </button>
+                </div>
+            ` : ''}
+
+            <!-- Pulsanti di navigazione -->
+            <div style="text-align: center; margin: 30px 0;">
+                <button onclick="app.tornaAllaPaginaPrecedente()" class="link-button" style="font-size: 16px; margin-right: 15px;">
+                    ← Torna Indietro
+                </button>
+                <button onclick="app.showAcquistoPage()" class="link-button" style="font-size: 16px;">
+                    🛒 Vai ad Acquisto
+                </button>
+            </div>
+        `;
     }
 
-    async fetchArticoliDisponibili() {
-        const response = await fetch('/TIWProject/api/articoli/disponibili');
-        return response.ok ? await response.json() : [];
+    setupDettaglioEventListeners(astaId) {
+        // Gli event listener sono gestiti tramite onclick inline per semplicità
+        // In una versione più avanzata si potrebbero gestire tramite addEventListener
     }
 
-    async fetchAsteVinte() {
-        const response = await fetch('/TIWProject/api/aste/vinte');
-        return response.ok ? await response.json() : [];
+    // ===== FORM OFFERTA =====
+
+    async mostraFormOfferta(astaId) {
+        console.log('💰 Caricamento form offerta per asta:', astaId);
+
+        try {
+            this.showLoading();
+
+            const [asta, offerte] = await Promise.all([
+                this.apiClient.getAstaById(astaId),
+                this.apiClient.getOfferteByAsta(astaId)
+            ]);
+
+            if (asta.chiusa || DateUtils.isScaduta(asta.scadenza)) {
+                DOMUtils.showError('❌ Asta non più disponibile per offerte');
+                return;
+            }
+
+            if (asta.venditoreId === this.currentUser.id) {
+                DOMUtils.showError('❌ Non puoi fare offerte sulle tue aste');
+                return;
+            }
+
+            const minimaRichiesta = (asta.offertaMassima || asta.prezzoIniziale) + asta.rialzoMinimo;
+            const formHTML = this.generateFormOfferta(asta, offerte, minimaRichiesta);
+
+            document.getElementById('main-content').innerHTML = formHTML;
+            this.setupFormOffertaEventListeners(astaId, minimaRichiesta);
+
+        } catch (error) {
+            console.error('❌ Errore caricamento form offerta:', error);
+            DOMUtils.showError('❌ Errore nel caricamento: ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
     }
 
-    // Utility functions
-    getTempoRimanente(scadenza) {
-        const now = new Date();
-        const scadenzaDate = new Date(scadenza);
-        
-        if (now > scadenzaDate) return 'Scaduta';
-        
-        const diff = scadenzaDate - now;
-        const giorni = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const ore = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        
-        return giorni > 0 ? `${giorni} giorni, ${ore} ore` : `${ore} ore`;
+    generateFormOfferta(asta, offerte, minimaRichiesta) {
+        return `
+            <div class="form-container">
+                <h2>💰 Fai Offerta - Asta #${asta.id}</h2>
+                
+                <!-- Articoli in asta -->
+                <div class="form-group">
+                    <label>📦 Articoli in Asta:</label>
+                    ${asta.articoli.map(art => `
+                        <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f9f9f9;">
+                            <h4 style="color: #2c3e50; margin-bottom: 10px;">
+                                ${art.codice} - ${art.nome}
+                            </h4>
+                            <p style="margin-bottom: 10px;">${art.descrizione}</p>
+                            <p style="font-size: 16px; font-weight: bold; color: #27ae60;">
+                                💰 Prezzo base: ${FormatUtils.formatPrice(art.prezzo)}
+                            </p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- Informazioni offerta -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px;">
+                        <strong>💵 Offerta Attuale:</strong>
+                        <p style="font-size: 20px; font-weight: bold; color: #27ae60; margin: 5px 0;">
+                            ${FormatUtils.formatPrice(asta.offertaMassima || asta.prezzoIniziale)}
+                        </p>
+                    </div>
+                    <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px;">
+                        <strong>📈 Offerta Minima:</strong>
+                        <p style="font-size: 20px; font-weight: bold; color: #e74c3c; margin: 5px 0;">
+                            ${FormatUtils.formatPrice(minimaRichiesta)}
+                        </p>
+                    </div>
+                    <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px;">
+                        <strong>⏰ Scadenza:</strong>
+                        <p style="font-size: 16px; font-weight: bold; margin: 5px 0;">
+                            ${DateUtils.formatDateTime(asta.scadenza)}
+                        </p>
+                        <p style="color: #e74c3c; font-weight: bold;">
+                            ${DateUtils.getTempoRimanente(asta.scadenza)}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Form offerta -->
+                <form id="form-offerta">
+                    <div class="form-group">
+                        <label for="importo-offerta">💰 La tua Offerta (€):</label>
+                        <input type="number" step="0.01" id="importo-offerta" name="importo"
+                               min="${minimaRichiesta.toFixed(2)}" 
+                               placeholder="${minimaRichiesta.toFixed(2)}"
+                               style="font-size: 18px; padding: 15px;" required>
+                        <small>L'offerta deve essere almeno ${FormatUtils.formatPrice(minimaRichiesta)}</small>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="font-size: 18px; padding: 15px 30px;">
+                        🚀 Invia Offerta
+                    </button>
+                </form>
+            </div>
+
+            <!-- Cronologia offerte -->
+            ${offerte && offerte.length > 0 ? `
+                <div class="table-container">
+                    <h3>📊 Cronologia Offerte (${offerte.length})</h3>
+                    <table>
+                        <tr>
+                            <th>👤 Offerente</th>
+                            <th>💵 Importo</th>
+                            <th>📅 Data/Ora</th>
+                            <th>🏆 Posizione</th>
+                        </tr>
+                        ${offerte.map((offerta, i) => `
+                            <tr ${i === 0 ? 'style="background-color: #f0f8ff; font-weight: bold;"' : ''}>
+                                <td>
+                                    ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ''}
+                                    ${offerta.nomeOfferente || `Utente #${offerta.offerenteId}`}
+                                    ${offerta.offerenteId === this.currentUser.id ?
+            '<span style="background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">TU</span>' : ''
+        }
+                                </td>
+                                <td>
+                                    <span style="${i === 0 ? 'color: #27ae60; font-size: 18px;' : ''}">
+                                        ${FormatUtils.formatPrice(offerta.importo)}
+                                    </span>
+                                </td>
+                                <td>${DateUtils.formatDateTime(offerta.dataOfferta)}</td>
+                                <td>
+                                    ${i === 0 ?
+            '<span class="status-open">🏆 Vincente</span>' :
+            `#${i + 1}`
+        }
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            ` : `
+                <div class="alert alert-info">
+                    📭 <strong>Nessuna offerta ancora ricevuta.</strong> Sii il primo a fare un'offerta!
+                </div>
+            `}
+
+            <div style="text-align: center; margin: 30px 0;">
+                <button onclick="app.mostraDettaglioAsta(${asta.id})" class="link-button" style="font-size: 16px;">
+                    ← Torna ai dettagli asta
+                </button>
+            </div>
+        `;
     }
 
-    // Gestione localStorage per preferenze utente
+    setupFormOffertaEventListeners(astaId, minimaRichiesta) {
+        const formOfferta = document.getElementById('form-offerta');
+        if (formOfferta) {
+            formOfferta.addEventListener('submit', (e) => this.handleInviaOfferta(e, astaId, minimaRichiesta));
+        }
+    }
+
+    async handleInviaOfferta(event, astaId, minimaRichiesta) {
+        event.preventDefault();
+
+        const importo = parseFloat(document.getElementById('importo-offerta').value);
+
+        // Validazione client-side
+        if (importo < minimaRichiesta) {
+            DOMUtils.showError(`❌ L'offerta deve essere almeno ${FormatUtils.formatPrice(minimaRichiesta)}`);
+            return;
+        }
+
+        if (!confirm(`Confermi di voler fare un'offerta di ${FormatUtils.formatPrice(importo)}?`)) {
+            return;
+        }
+
+        try {
+            this.showLoading();
+
+            await this.apiClient.createOfferta({
+                astaId: astaId,
+                importo: importo
+            });
+
+            DOMUtils.showSuccess('✅ Offerta inviata con successo!');
+
+            // Ricarica il form per mostrare la nuova offerta
+            setTimeout(() => {
+                this.mostraFormOfferta(astaId);
+            }, 1500);
+
+        } catch (error) {
+            console.error('❌ Errore invio offerta:', error);
+            DOMUtils.showError('❌ ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    // ===== CHIUSURA ASTA =====
+
+    async chiudiAsta(astaId) {
+        if (!confirm('Sei sicuro di voler chiudere questa asta?')) {
+            return;
+        }
+
+        try {
+            this.showLoading();
+            await this.apiClient.chiudiAsta(astaId);
+
+            DOMUtils.showSuccess('✅ Asta chiusa con successo!');
+
+            // Ricarica i dettagli dell'asta
+            setTimeout(() => {
+                this.mostraDettaglioAsta(astaId);
+            }, 1500);
+
+        } catch (error) {
+            console.error('❌ Errore chiusura asta:', error);
+            DOMUtils.showError('❌ ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    // ===== UTILITY E NAVIGAZIONE =====
+
+    tornaAllaPaginaPrecedente() {
+        if (this.currentPage === 'vendo') {
+            this.showVendoPage();
+        } else {
+            this.showAcquistoPage();
+        }
+    }
+
+    showLoading() {
+        document.getElementById('loading').style.display = 'block';
+    }
+
+    hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    // ===== GESTIONE PERSISTENZA =====
+
     saveUserPreferences() {
         const preferences = {
             lastAction: this.lastAction,
             visitedAuctions: this.visitedAuctions,
             currentUser: this.currentUser
         };
-        
-        // Salva per un mese
-        const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + 1);
-        
-        localStorage.setItem('asteOnlinePrefs', JSON.stringify({
-            data: preferences,
-            expiry: expiryDate.getTime()
-        }));
+
+        StorageUtils.saveWithExpiry('asteOnlinePrefs', preferences, 30);
     }
 
     loadUserPreferences() {
-        const stored = localStorage.getItem('asteOnlinePrefs');
-        if (!stored) return;
-        
-        try {
-            const parsed = JSON.parse(stored);
-            
-            // Controlla se non è scaduto
-            if (new Date().getTime() > parsed.expiry) {
-                localStorage.removeItem('asteOnlinePrefs');
-                return;
-            }
-            
-            this.lastAction = parsed.data.lastAction;
-            this.visitedAuctions = parsed.data.visitedAuctions || [];
-            this.currentUser = parsed.data.currentUser;
-            
-        } catch (error) {
-            console.error('❌ Errore caricamento preferenze:', error);
-            localStorage.removeItem('asteOnlinePrefs');
+        const preferences = StorageUtils.loadWithExpiry('asteOnlinePrefs');
+
+        if (preferences) {
+            this.lastAction = preferences.lastAction;
+            this.visitedAuctions = preferences.visitedAuctions || [];
+            this.currentUser = preferences.currentUser;
         }
     }
 
-    // Utility per messaggi
-    showError(message) {
-        this.showMessage(message, 'alert-error');
-    }
+    // ===== LOGOUT =====
 
-    showSuccess(message) {
-        this.showMessage(message, 'alert-success');
-    }
-
-    showMessage(message, className) {
-        const existing = document.querySelector('.alert');
-        if (existing) existing.remove();
-        
-        const alert = document.createElement('div');
-        alert.className = `alert ${className}`;
-        alert.innerHTML = message;
-        
-        const container = document.getElementById('main-content') || document.querySelector('.container');
-        container.insertBefore(alert, container.firstChild);
-        
-        // Rimuovi dopo 5 secondi
-        setTimeout(() => alert.remove(), 5000);
-    }
-
-    // Logout
     logout() {
         if (confirm('Sei sicuro di voler uscire?')) {
-            localStorage.removeItem('asteOnlinePrefs');
-            location.reload();
+            StorageUtils.remove('asteOnlinePrefs');
+            this.currentUser = null;
+            this.currentPage = null;
+            this.lastAction = null;
+            this.visitedAuctions = [];
+
+            // Reset dell'interfaccia
+            document.getElementById('navigation').style.display = 'none';
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('main-content').innerHTML = '';
+
+            this.showLoginForm();
         }
     }
 }
 
+// Inizializza l'applicazione
+let app;
+document.addEventListener('DOMContentLoaded', () => {
+    app = new AsteOnlineApp();
+});
 // Inizializza l'applicazione
 let app;
 document.addEventListener('DOMContentLoaded', () => {
