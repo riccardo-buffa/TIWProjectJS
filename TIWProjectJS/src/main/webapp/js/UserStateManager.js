@@ -194,14 +194,13 @@ class UserStateManager {
         }
 
         // Ultima azione = creazione asta → VENDO
-        if (this.state.lastAction === 'crea_asta') {
-            console.log('📦 [STATE] Ultima azione: creazione asta → Pagina VENDO');
+        else {
             return 'vendo';
         }
 
         // Altrimenti → ACQUISTO (con aste visitate)
-        console.log('🛒 [STATE] Default → Pagina ACQUISTO');
-        return 'acquisto';
+        //console.log('🛒 [STATE] Default → Pagina ACQUISTO');
+        //return 'acquisto';
     }
 
     /**

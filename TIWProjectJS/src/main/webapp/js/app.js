@@ -47,14 +47,13 @@ class AsteOnlineApp {
             this.currentUser = userData;
             console.log('✅ Login successful:', userData);
 
+            this.showMainInterface();
+            this.determineAndShowInitialPage();
+
             // Marca che l'utente ha completato il primo accesso se necessario
             if (this.stateManager.isFirstAccess()) {
                 this.stateManager.markFirstAccessComplete();
             }
-
-            this.showMainInterface();
-            this.determineAndShowInitialPage();
-
         } catch (error) {
             console.error('❌ Errore di login:', error);
             DOMUtils.showError('❌ ' + error.message);
