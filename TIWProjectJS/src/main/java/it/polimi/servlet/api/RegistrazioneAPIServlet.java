@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
-//@WebServlet(name = "RegistrazioneAPIServlet", urlPatterns = {"/api/register"})
+@WebServlet(name = "RegistrazioneAPIServlet", urlPatterns = {"/api/register"})
 public class RegistrazioneAPIServlet extends BaseAPIServlet {
     private UtenteDAO utenteDAO = new UtenteDAO();
 
