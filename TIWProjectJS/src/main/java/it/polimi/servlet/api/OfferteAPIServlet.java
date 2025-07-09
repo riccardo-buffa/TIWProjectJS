@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(name = "OfferteAPIServlet", urlPatterns = {"/api/offerte", "/api/offerte/*"})
+//@WebServlet(name = "OfferteAPIServlet", urlPatterns = {"/api/offerte", "/api/offerte/*"})
 public class OfferteAPIServlet extends BaseAPIServlet {
     private OffertaDAO offertaDAO = new OffertaDAO();
     private AstaDAO astaDAO = new AstaDAO();

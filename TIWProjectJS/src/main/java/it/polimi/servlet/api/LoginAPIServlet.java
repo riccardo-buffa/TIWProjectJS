@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@WebServlet(name = "LoginAPIServlet", urlPatterns = {"/api/login"})
+//@WebServlet(name = "LoginAPIServlet", urlPatterns = {"/api/login"})
 public class LoginAPIServlet extends BaseAPIServlet {
     private UtenteDAO utenteDAO = new UtenteDAO();
 

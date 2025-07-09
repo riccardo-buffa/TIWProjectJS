@@ -1084,8 +1084,3 @@ let app;
 document.addEventListener('DOMContentLoaded', () => {
     app = new AsteOnlineApp();
 });
-// Inizializza l'applicazione
-let app;
-document.addEventListener('DOMContentLoaded', () => {
-    app = new AsteOnlineApp();
-});

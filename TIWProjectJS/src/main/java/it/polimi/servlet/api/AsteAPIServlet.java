@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@WebServlet(name = "AsteAPIServlet", urlPatterns = {"/api/aste", "/api/aste/*"})
+//WebServlet(name = "AsteAPIServlet", urlPatterns = {"/api/aste", "/api/aste/*"})
 public class AsteAPIServlet extends BaseAPIServlet {
     private AstaDAO astaDAO = new AstaDAO();
     private ArticoloDAO articoloDAO = new ArticoloDAO();

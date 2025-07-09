@@ -7,11 +7,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.util.Map;
 
-@WebServlet(name = "RegistrazioneAPIServlet", urlPatterns = {"/api/register"})
+//@WebServlet(name = "RegistrazioneAPIServlet", urlPatterns = {"/api/register"})
 public class RegistrazioneAPIServlet extends BaseAPIServlet {
     private UtenteDAO utenteDAO = new UtenteDAO();
 

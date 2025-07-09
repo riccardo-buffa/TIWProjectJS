@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-@WebServlet(name = "ArticoliAPIServlet", urlPatterns = {"/api/articoli", "/api/articoli/*"})
+//@WebServlet(name = "ArticoliAPIServlet", urlPatterns = {"/api/articoli", "/api/articoli/*"})
 public class ArticoliAPIServlet extends BaseAPIServlet {
     private ArticoloDAO articoloDAO = new ArticoloDAO();
 

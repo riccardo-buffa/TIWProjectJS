@@ -1,7 +1,7 @@
 // Client per le API REST del backend
 class APIClient {
     constructor() {
-        this.baseURL = '/TIWProject/api';
+        this.baseURL = '/TIWProjectJS/api';
         this.defaultHeaders = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
