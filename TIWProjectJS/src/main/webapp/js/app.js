@@ -449,7 +449,7 @@ class AsteOnlineApp {
             this.showLoading();
             const aste = await this.apiClient.searchAste(parolaChiave);
 
-            // Registra l'azione di ricerca
+            // 🔥 REGISTRA L'AZIONE 🔥
             this.stateManager.setLastAction('ricerca_aste');
 
             const risultatiHTML = this.generateRisultatiRicerca(aste, parolaChiave);
@@ -467,6 +467,9 @@ class AsteOnlineApp {
 
     async mostraDettaglioAsta(astaId) {
         console.log('📋 Caricamento dettaglio asta:', astaId);
+
+        // 🔥 REGISTRA L'AZIONE IMPORTANTE 🔥
+        this.stateManager.setLastAction('mostra_dettaglio_asta');
 
         // Registra la visita all'asta (solo se siamo in modalità acquisto)
         if (this.currentPage === 'acquisto') {
