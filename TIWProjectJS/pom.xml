@@ -7,11 +7,11 @@
 
   <!-- ===== INFORMAZIONI PROGETTO ===== -->
   <groupId>it.polimi</groupId>
-  <artifactId>aste-online-jakarta</artifactId>
+  <artifactId>TIWProjectJS</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>war</packaging>
 
-  <name>Aste Online Jakarta EE</name>
+  <name>TIWProjectJS - Aste Online Jakarta EE</name>
   <description>Sistema di aste online sviluppato con Jakarta EE 9+ e MySQL</description>
 
   <!-- ===== PROPRIETÀ ===== -->
@@ -92,7 +92,7 @@
 
   <!-- ===== BUILD CONFIGURATION ===== -->
   <build>
-    <finalName>aste-online-jakarta</finalName>
+    <finalName>TIWProjectJS</finalName>
 
     <plugins>
 
@@ -121,7 +121,6 @@
           <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
       </plugin>
-
 
       <!-- MAVEN RESOURCES PLUGIN -->
       <plugin>

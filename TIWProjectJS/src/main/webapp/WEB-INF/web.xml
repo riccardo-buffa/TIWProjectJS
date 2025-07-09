@@ -5,7 +5,7 @@
          https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
          version="5.0">
 
-    <display-name>Aste Online</display-name>
+    <display-name>TIWProjectJS - Aste Online</display-name>
 
     <!-- ===== PAGINA INIZIALE ===== -->
     <welcome-file-list>
@@ -101,5 +101,16 @@
         <extension>json</extension>
         <mime-type>application/json</mime-type>
     </mime-mapping>
+
+    <!-- ===== GESTIONE ERRORI ===== -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/index.html</location>
+    </error-page>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/index.html</location>
+    </error-page>
 
 </web-app>

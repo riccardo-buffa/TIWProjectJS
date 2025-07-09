@@ -1,7 +1,18 @@
 // Client per le API REST del backend
 class APIClient {
     constructor() {
-        this.baseURL = '/TIWProjectJS/api';
+        // Rileva automaticamente il context path dalla URL corrente
+        const contextPath = window.location.pathname.split('/')[1];
+        if (contextPath && contextPath !== '') {
+            this.baseURL = `/${contextPath}/api`;
+        } else {
+            this.baseURL = '/api';
+        }
+
+        // Debug: mostra il path che stiamo usando
+        console.log('🔗 [API] Context path rilevato:', window.location.pathname);
+        console.log('🔗 [API] Base URL configurato:', this.baseURL);
+
         this.defaultHeaders = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -11,30 +22,37 @@ class APIClient {
     // Metodo generico per le chiamate HTTP
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
+        const isLoginRequest = endpoint === '/login';
 
         const config = {
             method: options.method || 'GET',
             headers: { ...this.defaultHeaders, ...options.headers },
-            credentials: 'same-origin', // Include cookies di sessione
+            credentials: 'same-origin',
             ...options
         };
 
-        // Se c'è un body e non è FormData, convertilo in JSON
         if (config.body && !(config.body instanceof FormData)) {
             config.body = JSON.stringify(config.body);
         }
 
         try {
             console.log(`🔗 [API] ${config.method} ${url}`);
+            console.log('🔗 [API] Full URL:', `http://localhost:8080${url}`);
+            if (config.body) {
+                console.log('🔗 [API] Request Body:', config.body);
+            }
 
             const response = await fetch(url, config);
 
-            // Se la risposta è 401, l'utente deve rifare login
-            if (response.status === 401) {
+            // Log dettagliato della risposta
+            console.log(`📡 [API] Response Status: ${response.status}`);
+            console.log(`📡 [API] Response Headers:`, [...response.headers.entries()]);
+
+            // Per le richieste di login, 401 è normale se le credenziali sono sbagliate
+            if (response.status === 401 && !isLoginRequest) {
                 throw new Error('Sessione scaduta. Effettua nuovamente il login.');
             }
 
-            // Se la risposta non è ok, prova a estrarre il messaggio di errore
             if (!response.ok) {
                 let errorMessage = `Errore HTTP ${response.status}`;
 
@@ -45,18 +63,39 @@ class APIClient {
                         errorMessage = errorData.message || errorData.error || errorMessage;
                     } else {
                         const errorText = await response.text();
-                        if (errorText) errorMessage = errorText;
+                        console.log('📡 [API] Response Text:', errorText);
+
+                        if (errorText) {
+                            // Se è HTML, estrai solo il titolo
+                            const titleMatch = errorText.match(/<title>(.*?)<\/title>/);
+                            if (titleMatch) {
+                                errorMessage = titleMatch[1];
+                            } else if (errorText.includes('401')) {
+                                // Per richieste di login con 401
+                                if (isLoginRequest) {
+                                    errorMessage = 'Username o password non corretti';
+                                } else {
+                                    errorMessage = 'Accesso non autorizzato';
+                                }
+                            } else {
+                                errorMessage = errorText.substring(0, 100) + '...';
+                            }
+                        }
                     }
                 } catch (parseError) {
                     console.warn('⚠️ [API] Impossibile parsare errore:', parseError);
+                    // Fallback per errori di login
+                    if (isLoginRequest && response.status === 401) {
+                        errorMessage = 'Username o password non corretti';
+                    }
                 }
 
                 throw new Error(errorMessage);
             }
 
-            // Se la risposta è vuota, ritorna null
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
+                console.log('📡 [API] Response is not JSON, returning null');
                 return null;
             }
 
@@ -67,6 +106,60 @@ class APIClient {
         } catch (error) {
             console.error(`❌ [API] Errore ${config.method} ${url}:`, error);
             throw error;
+        }
+    }
+
+    // Metodo per testare manualmente diversi path
+    async testPaths() {
+        const testPaths = [
+            '/aste_online_jakarta_war/api/login',
+            '/TIWProjectJS/api/login',
+            '/api/login',
+            '/TIWProject/api/login'
+        ];
+
+        console.log('🧪 [API] Testing possible paths...');
+
+        for (const path of testPaths) {
+            try {
+                const response = await fetch(`http://localhost:8080${path}`, {
+                    method: 'OPTIONS',
+                    headers: this.defaultHeaders
+                });
+                console.log(`✅ [API] Path ${path} - Status: ${response.status}`);
+            } catch (error) {
+                console.log(`❌ [API] Path ${path} - Error: ${error.message}`);
+            }
+        }
+    }
+
+    // Test specifico per login
+    async testLogin() {
+        console.log('🧪 [API] Testing login endpoint...');
+
+        try {
+            const response = await fetch(`http://localhost:8080${this.baseURL}/login`, {
+                method: 'POST',
+                headers: this.defaultHeaders,
+                body: JSON.stringify({
+                    username: 'admin',
+                    password: 'admin123'
+                })
+            });
+
+            console.log('🧪 [API] Login test - Status:', response.status);
+            console.log('🧪 [API] Login test - Headers:', [...response.headers.entries()]);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('🧪 [API] Login test - Response:', data);
+            } else {
+                const errorText = await response.text();
+                console.log('🧪 [API] Login test - Error:', errorText);
+            }
+
+        } catch (error) {
+            console.error('🧪 [API] Login test - Exception:', error);
         }
     }
 
@@ -178,7 +271,6 @@ class APIClient {
 
     // ===== UTILITY =====
 
-    // Metodo per testare la connettività dell'API
     async testConnection() {
         try {
             await this.request('/health');
@@ -189,12 +281,10 @@ class APIClient {
         }
     }
 
-    // Metodo per gestire upload di file (se necessario in futuro)
     async uploadFile(endpoint, file, additionalData = {}) {
         const formData = new FormData();
         formData.append('file', file);
 
-        // Aggiungi dati aggiuntivi
         Object.keys(additionalData).forEach(key => {
             formData.append(key, additionalData[key]);
         });
@@ -202,7 +292,7 @@ class APIClient {
         return this.request(endpoint, {
             method: 'POST',
             body: formData,
-            headers: {} // Rimuovi Content-Type per FormData
+            headers: {}
         });
     }
 }
