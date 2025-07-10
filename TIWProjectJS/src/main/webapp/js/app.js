@@ -128,7 +128,6 @@ class AsteOnlineApp {
     determineAndShowInitialPage() {
         const initialPage = this.stateManager.determineInitialPage();
 
-        console.log('🎯 [APP] Pagina iniziale determinata:', initialPage);
 
         if (initialPage === 'vendo') {
             this.showVendoPage();

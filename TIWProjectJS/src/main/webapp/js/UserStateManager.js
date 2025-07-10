@@ -64,11 +64,6 @@ class UserStateManager {
             this.state.expiry = new Date().getTime() + (this.EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
-            console.log('💾 [STATE] Stato salvato:', {
-                isFirstAccess: this.state.isFirstAccess,
-                lastAction: this.state.lastAction,
-                visitedAuctionsCount: this.state.visitedAuctions.length
-            });
         } catch (error) {
             console.error('❌ [STATE] Errore salvataggio stato:', error);
         }
@@ -80,14 +75,12 @@ class UserStateManager {
     markFirstAccessComplete() {
         this.state.isFirstAccess = false;
         this.saveState();
-        console.log('✅ [STATE] Primo accesso completato');
     }
 
     /**
      * Registra l'ultima azione dell'utente
      */
     setLastAction(action) {
-        console.log('📝 [STATE] Registrazione ultima azione:', action);
         this.state.lastAction = action;
         this.state.lastActionTime = new Date().getTime();
         this.saveState();
@@ -112,7 +105,6 @@ class UserStateManager {
      */
     addVisitedAuction(auctionId) {
         if (!auctionId || typeof auctionId !== 'number') {
-            console.warn('⚠️ [STATE] ID asta non valido:', auctionId);
             return;
         }
 
@@ -126,7 +118,6 @@ class UserStateManager {
             }
 
             this.saveState();
-            console.log('👁️ [STATE] Asta aggiunta alle visitate:', auctionId);
         }
     }
 
@@ -145,7 +136,6 @@ class UserStateManager {
         if (index > -1) {
             this.state.visitedAuctions.splice(index, 1);
             this.saveState();
-            console.log('🗑️ [STATE] Asta rimossa dalle visitate:', auctionId);
         }
     }
 
@@ -160,8 +150,6 @@ class UserStateManager {
 
         if (this.state.visitedAuctions.length !== before) {
             this.saveState();
-            console.log('🧹 [STATE] Pulizia aste chiuse:',
-                `${before} → ${this.state.visitedAuctions.length}`);
         }
     }
 
@@ -185,22 +173,19 @@ class UserStateManager {
      * Determina quale pagina mostrare all'avvio
      */
     determineInitialPage() {
-        console.log('🎯 [STATE] Determinazione pagina iniziale...');
 
         // Primo accesso → ACQUISTO
         if (this.isFirstAccess()) {
-            console.log('🆕 [STATE] Primo accesso → Pagina ACQUISTO');
             return 'acquisto';
         }
 
         // Ultima azione = creazione asta → VENDO
-        else {
+        if (this.state.lastAction === 'crea_asta') {
             return 'vendo';
         }
 
         // Altrimenti → ACQUISTO (con aste visitate)
-        //console.log('🛒 [STATE] Default → Pagina ACQUISTO');
-        //return 'acquisto';
+        return 'acquisto';
     }
 
     /**
