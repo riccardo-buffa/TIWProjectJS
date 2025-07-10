@@ -113,9 +113,9 @@ class UserStateManager {
         //console.log('📝 [STATE] Azione registrata:', actionType, data);
 
         // Se è una visita ad un'asta, tieni traccia anche nell'array separato per retrocompatibilità
-        if (actionType === 'visita_asta' && data.astaId) {
+        /*if (actionType === 'visita_asta' && data.astaId) {
             this.addVisitedAuction(data.astaId);
-        }
+        }*/
 
         this.saveState();
     }
