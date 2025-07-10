@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant APIClient
+    participant LoginServlet
+    participant UtenteDAO
+    participant Database
+
+    User->>Browser: Enter credentials
+    Browser->>APIClient: Submit form
+    APIClient->>LoginServlet: POST /api/login
+    LoginServlet->>UtenteDAO: login(username, password)
+    UtenteDAO->>Database: SELECT FROM utenti WHERE username=? AND password=?
+    Database-->>UtenteDAO: User data
+    UtenteDAO-->>LoginServlet: User object
+    LoginServlet-->>APIClient: JSON response
+    APIClient-->>Browser: Update UI
+    Browser-->>User: Show main interface

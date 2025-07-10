@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant StateManager
+    participant APIClient
+    participant AsteServlet
+    participant AstaDAO
+    participant Database
+
+    User->>Browser: Create auction
+    Browser->>Browser: Validate form
+    Browser->>APIClient: Submit auction data
+    APIClient->>AsteServlet: POST /api/aste
+    AsteServlet->>AsteServlet: Validate business rules
+    AsteServlet->>AstaDAO: creaAsta(asta, articoliIds)
+    AstaDAO->>Database: BEGIN TRANSACTION
+    AstaDAO->>Database: INSERT INTO aste
+    AstaDAO->>Database: INSERT INTO asta_articoli
+    AstaDAO->>Database: COMMIT
+    AstaDAO-->>AsteServlet: Success
+    AsteServlet-->>APIClient: Success response
+    APIClient-->>Browser: Success message
+    Browser->>StateManager: setLastAction('crea_asta')
+    Browser->>Browser: Refresh page
+    Browser-->>User: Show success message

@@ -1,0 +1,43 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant APIClient
+    participant AsteServlet
+    participant AstaDAO
+    participant OffertaDAO
+    participant ArticoloDAO
+    participant Database
+
+    User->>Browser: Click close auction
+    Browser->>APIClient: Close auction request
+    APIClient->>AsteServlet: POST /api/aste/{id}/chiudi
+    AsteServlet->>AstaDAO: getById(astaId)
+    AstaDAO->>Database: Verify auction ownership
+    Database-->>AstaDAO: Auction data
+    AstaDAO-->>AsteServlet: Verification OK
+
+    AsteServlet->>OffertaDAO: getOffertaMassima(astaId)
+    OffertaDAO->>Database: SELECT MAX(importo) FROM offerte
+    Database-->>OffertaDAO: Max offer amount
+    OffertaDAO-->>AsteServlet: Max offer
+
+    AsteServlet->>OffertaDAO: getVincitore(astaId)
+    OffertaDAO->>Database: SELECT winner by highest offer
+    Database-->>OffertaDAO: Winner ID
+    OffertaDAO-->>AsteServlet: Winner data
+
+    AsteServlet->>AstaDAO: chiudiAsta(astaId, vincitoreId, prezzoFinale)
+    AstaDAO->>Database: UPDATE aste SET chiusa=TRUE
+    Database-->>AstaDAO: Update success
+
+    alt Winner exists
+        AsteServlet->>ArticoloDAO: marcaVenduti(articoliIds)
+        ArticoloDAO->>Database: UPDATE articoli SET venduto=TRUE
+        Database-->>ArticoloDAO: Articles marked sold
+        ArticoloDAO-->>AsteServlet: Success
+    end
+
+    AstaDAO-->>AsteServlet: Closure success
+    AsteServlet-->>APIClient: Success response
+    APIClient-->>Browser: Show success message
+    Browser-->>User: Auction closed successfully

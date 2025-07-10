@@ -1,0 +1,176 @@
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sfondo generale -->
+    <rect width="1400" height="900" fill="#f5f5f5"/>
+
+    <!-- Titolo -->
+    <text x="700" y="40" text-anchor="middle" font-size="32" font-weight="bold" fill="#2c3e50">
+        Architettura TIWProjectJS - Aste Online
+    </text>
+
+    <!-- Client/Server labels -->
+    <text x="1300" y="300" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">Client</text>
+    <text x="1300" y="600" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">Server</text>
+
+    <!-- Frecce sync/async -->
+    <line x1="1200" y1="320" x2="1350" y2="320" stroke="#3498db" stroke-width="3" marker-end="url(#arrowblue)"/>
+    <text x="1275" y="315" text-anchor="middle" font-size="16" fill="#333">synch</text>
+
+    <line x1="1200" y1="380" x2="1350" y2="380" stroke="#3498db" stroke-width="3" stroke-dasharray="8,4" marker-end="url(#arrowblue)"/>
+    <text x="1275" y="375" text-anchor="middle" font-size="16" fill="#333">asynch</text>
+
+    <!-- User Icon -->
+    <g transform="translate(700, 80)">
+        <circle cx="0" cy="0" r="30" fill="#3498db"/>
+        <circle cx="0" cy="-10" r="12" fill="white"/>
+        <path d="M -20 20 C -20 5, -12 -5, 0 -5 C 12 -5, 20 5, 20 20 Z" fill="white"/>
+        <text x="0" y="50" text-anchor="middle" font-size="16" fill="#333">User</text>
+    </g>
+
+    <!-- Browser/Client Tier -->
+    <g id="client-tier">
+        <rect x="450" y="180" width="500" height="200" fill="#8BC34A" stroke="#689F38" stroke-width="2" rx="10"/>
+        <text x="700" y="210" text-anchor="middle" font-size="20" font-weight="bold" fill="white">Client tier (Browser)</text>
+
+        <!-- Event handlers -->
+        <rect x="470" y="230" width="180" height="50" fill="white" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="560" y="260" text-anchor="middle" font-size="16" fill="#333">Event handlers</text>
+        <text x="560" y="275" text-anchor="middle" font-size="12" fill="#666">(app.js)</text>
+
+        <!-- Views -->
+        <rect x="750" y="230" width="180" height="50" fill="white" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="840" y="260" text-anchor="middle" font-size="16" fill="#333">Views</text>
+        <text x="840" y="275" text-anchor="middle" font-size="12" fill="#666">(index.html)</text>
+
+        <!-- State Management -->
+        <rect x="610" y="310" width="180" height="50" fill="#B0BEC5" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="700" y="335" text-anchor="middle" font-size="16" fill="#333">Client State</text>
+        <text x="700" y="350" text-anchor="middle" font-size="12" fill="#666">(UserStateManager)</text>
+    </g>
+
+    <!-- Web tier -->
+    <g id="web-tier">
+        <rect x="450" y="440" width="500" height="140" fill="#F44336" stroke="#D32F2F" stroke-width="2" rx="10"/>
+        <text x="700" y="470" text-anchor="middle" font-size="20" font-weight="bold" fill="white">Web tier (Tomcat)</text>
+
+        <!-- API Servlets -->
+        <rect x="470" y="490" width="200" height="70" fill="white" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="570" y="515" text-anchor="middle" font-size="16" fill="#333">API Servlets</text>
+        <text x="570" y="530" text-anchor="middle" font-size="11" fill="#666">LoginAPI, ArticoliAPI</text>
+        <text x="570" y="545" text-anchor="middle" font-size="11" fill="#666">AsteAPI, OfferteAPI</text>
+
+        <!-- JSON Response -->
+        <rect x="730" y="490" width="200" height="70" fill="white" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="830" y="515" text-anchor="middle" font-size="16" fill="#333">JSON Response</text>
+        <text x="830" y="530" text-anchor="middle" font-size="11" fill="#666">BaseAPIServlet</text>
+        <text x="830" y="545" text-anchor="middle" font-size="11" fill="#666">(Gson serialization)</text>
+    </g>
+
+    <!-- Business & Data tier -->
+    <g id="business-tier">
+        <rect x="400" y="640" width="600" height="220" fill="#00BCD4" stroke="#0097A7" stroke-width="2" rx="10"/>
+        <text x="700" y="670" text-anchor="middle" font-size="20" font-weight="bold" fill="white">Business &amp; Data tier</text>
+
+        <!-- Model Objects -->
+        <rect x="520" y="690" width="360" height="50" fill="#E3F2FD" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="700" y="715" text-anchor="middle" font-size="16" fill="#333">Model Objects</text>
+        <text x="700" y="730" text-anchor="middle" font-size="12" fill="#666">(Utente, Asta, Articolo, Offerta)</text>
+
+        <!-- Data Access Objects -->
+        <rect x="420" y="760" width="560" height="50" fill="#E3F2FD" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="700" y="785" text-anchor="middle" font-size="16" fill="#333">Data Access Objects (DAO)</text>
+        <text x="700" y="800" text-anchor="middle" font-size="12" fill="#666">(UtenteDAO, AstaDAO, ArticoloDAO, OffertaDAO)</text>
+
+        <!-- Database -->
+        <rect x="570" y="820" width="260" height="30" fill="white" stroke="#555" stroke-width="2" rx="5"/>
+        <text x="700" y="840" text-anchor="middle" font-size="14" fill="#333">MySQL Database</text>
+    </g>
+
+    <!-- Arrows e connessioni -->
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+        </marker>
+        <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#3498db"/>
+        </marker>
+    </defs>
+
+    <!-- User to Browser -->
+    <line x1="700" y1="130" x2="700" y2="180" stroke="#3498db" stroke-width="3" marker-end="url(#arrowblue)"/>
+    <text x="720" y="155" font-size="14" fill="#333">event</text>
+
+    <!-- Event handlers to Views -->
+    <line x1="650" y1="255" x2="750" y2="255" stroke="#3498db" stroke-width="2" marker-end="url(#arrowblue)" stroke-dasharray="5,5"/>
+    <text x="685" y="250" font-size="12" fill="#333">updates</text>
+
+    <!-- Views to Client State -->
+    <line x1="840" y1="280" x2="700" y2="310" stroke="#3498db" stroke-width="2" marker-end="url(#arrowblue)"/>
+    <text x="780" y="295" font-size="12" fill="#333">renders</text>
+
+    <!-- Client State to Event handlers -->
+    <line x1="610" y1="335" x2="560" y2="280" stroke="#3498db" stroke-width="2" marker-end="url(#arrowblue)" stroke-dasharray="5,5"/>
+
+    <!-- HTTP Request -->
+    <line x1="560" y1="380" x2="560" y2="440" stroke="#333" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="460" y="410" font-size="14" fill="#333">HTTP request</text>
+    <text x="460" y="425" font-size="12" fill="#666">(AJAX/Fetch)</text>
+
+    <!-- HTTP Response -->
+    <line x1="840" y1="440" x2="840" y2="380" stroke="#333" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="860" y="410" font-size="14" fill="#333">HTTP response</text>
+    <text x="860" y="425" font-size="12" fill="#666">(JSON)</text>
+
+    <!-- API to DAO -->
+    <line x1="570" y1="560" x2="700" y2="640" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="510" y="600" font-size="12" fill="#333">invoke</text>
+
+    <!-- JSON Response from DAO -->
+    <line x1="700" y1="640" x2="830" y2="560" stroke="#333" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow)"/>
+    <text x="750" y="600" font-size="12" fill="#333">return</text>
+
+    <!-- DAO to Model -->
+    <line x1="700" y1="760" x2="700" y2="740" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="720" y="755" font-size="12" fill="#333">create</text>
+
+    <!-- DAO operations -->
+    <line x1="600" y1="810" x2="600" y2="820" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="520" y="818" font-size="12" fill="#333">executeQuery</text>
+
+    <line x1="700" y1="810" x2="700" y2="820" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="645" y="818" font-size="12" fill="#333">resultSet</text>
+
+    <line x1="800" y1="810" x2="800" y2="820" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="730" y="818" font-size="12" fill="#333">executeUpdate</text>
+
+    <!-- Technologies labels -->
+    <g transform="translate(50, 280)">
+        <rect x="0" y="0" width="350" height="180" fill="white" stroke="#ccc" stroke-width="1" rx="5"/>
+        <text x="175" y="25" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">Tecnologie Utilizzate</text>
+
+        <text x="10" y="50" font-size="14" font-weight="bold" fill="#333">Frontend:</text>
+        <text x="20" y="70" font-size="12" fill="#666">• JavaScript (ES6+)</text>
+        <text x="20" y="85" font-size="12" fill="#666">• HTML5 / CSS3</text>
+        <text x="20" y="100" font-size="12" fill="#666">• AJAX (Fetch API)</text>
+        <text x="20" y="115" font-size="12" fill="#666">• localStorage (30 giorni)</text>
+
+        <text x="10" y="140" font-size="14" font-weight="bold" fill="#333">Backend:</text>
+        <text x="20" y="160" font-size="12" fill="#666">• Jakarta EE 9+ (Servlet 5.0)</text>
+        <text x="20" y="175" font-size="12" fill="#666">• Apache Tomcat 10+</text>
+        <text x="20" y="190" font-size="12" fill="#666">• MySQL 8.0</text>
+        <text x="20" y="205" font-size="12" fill="#666">• Gson (JSON processing)</text>
+    </g>
+
+    <!-- API endpoints -->
+    <g transform="translate(1050, 500)">
+        <rect x="0" y="0" width="300" height="150" fill="white" stroke="#ccc" stroke-width="1" rx="5"/>
+        <text x="150" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">API REST Endpoints</text>
+
+        <text x="10" y="45" font-size="12" fill="#666">• POST /api/login</text>
+        <text x="10" y="60" font-size="12" fill="#666">• POST /api/register</text>
+        <text x="10" y="75" font-size="12" fill="#666">• GET/POST /api/articoli</text>
+        <text x="10" y="90" font-size="12" fill="#666">• GET/POST /api/aste</text>
+        <text x="10" y="105" font-size="12" fill="#666">• GET/POST /api/offerte</text>
+        <text x="10" y="120" font-size="12" fill="#666">• POST /api/aste/{id}/chiudi</text>
+        <text x="10" y="135" font-size="12" fill="#666">• GET /api/aste/search?q=...</text>
+    </g>
+</svg>

@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant StateManager
+    participant LocalStorage
+
+    User->>Browser: First login
+    Browser->>StateManager: loadState()
+    StateManager->>LocalStorage: getItem('asteOnlineUserState')
+    LocalStorage-->>StateManager: null (first access)
+    StateManager-->>Browser: isFirstAccess = true
+    Browser->>Browser: determineInitialPage() → 'acquisto'
+    Browser-->>User: Show Acquisto page
+
+    User->>Browser: Create auction
+    Browser->>StateManager: setLastAction('crea_asta')
+    StateManager->>LocalStorage: saveState() with lastAction
+    LocalStorage-->>StateManager: Saved
+
+    User->>Browser: Logout and login again
+    Browser->>StateManager: loadState()
+    StateManager->>LocalStorage: getItem('asteOnlineUserState')
+    LocalStorage-->>StateManager: {lastAction: 'crea_asta', isFirstAccess: false}
+    StateManager-->>Browser: determineInitialPage() → 'vendo'
+    Browser-->>User: Show Vendo page
+
+    User->>Browser: Visit auction detail
+    Browser->>StateManager: addVisitedAuction(auctionId)
+    StateManager->>LocalStorage: Update visitedAuctions array
+    LocalStorage-->>StateManager: Updated
+
+    Note over StateManager, LocalStorage: State expires after 30 days

@@ -25,9 +25,6 @@ class AsteOnlineApp {
         // Pulsanti per mostrare login/register
         document.getElementById('btn-show-register').addEventListener('click', () => this.showRegisterForm());
         document.getElementById('btn-show-login').addEventListener('click', () => this.showLoginForm());
-
-        // Controlla se c'è un utente salvato (NON implementato per sicurezza)
-        // Il login deve essere sempre esplicito
     }
 
     // ===== GESTIONE AUTENTICAZIONE =====
@@ -47,13 +44,12 @@ class AsteOnlineApp {
             this.currentUser = userData;
             console.log('✅ Login successful:', userData);
 
+            // Inizia una nuova sessione
+            this.stateManager.startNewSession();
+
             this.showMainInterface();
             this.determineAndShowInitialPage();
 
-            // Marca che l'utente ha completato il primo accesso se necessario
-            if (this.stateManager.isFirstAccess()) {
-                this.stateManager.markFirstAccessComplete();
-            }
         } catch (error) {
             console.error('❌ Errore di login:', error);
             DOMUtils.showError('❌ ' + error.message);
@@ -128,6 +124,13 @@ class AsteOnlineApp {
     determineAndShowInitialPage() {
         const initialPage = this.stateManager.determineInitialPage();
 
+        console.log('🏠 [APP] Pagina iniziale determinata:', initialPage);
+
+        // Marca il primo accesso come completato DOPO aver determinato la pagina
+        if (this.stateManager.isFirstAccess()) {
+            // Aspetta che l'utente faccia qualche azione prima di marcare come completato
+            // Non lo facciamo subito al login
+        }
 
         if (initialPage === 'vendo') {
             this.showVendoPage();
@@ -142,6 +145,9 @@ class AsteOnlineApp {
         console.log('📦 Caricamento pagina Vendo');
         this.currentPage = 'vendo';
         DOMUtils.highlightActiveNavButton('btn-vendo');
+
+        // Registra navigazione alla pagina vendo
+        this.stateManager.recordAction('naviga_vendo');
 
         try {
             this.showLoading();
@@ -276,8 +282,11 @@ class AsteOnlineApp {
             this.showLoading();
             await this.apiClient.createArticolo(articolo);
 
-            // Registra l'azione (ma non cambia pagina)
-            this.stateManager.setLastAction('crea_articolo');
+            // Registra l'azione
+            this.stateManager.recordAction('crea_articolo', {
+                codice: articolo.codice,
+                nome: articolo.nome
+            });
 
             DOMUtils.showSuccess('✅ Articolo creato con successo!');
             this.showVendoPage(); // Ricarica la pagina
@@ -313,8 +322,17 @@ class AsteOnlineApp {
             this.showLoading();
             await this.apiClient.createAsta(asta);
 
-            // Registra l'azione importante: creazione asta
-            this.stateManager.setLastAction('crea_asta');
+            // 🔥 REGISTRA L'AZIONE IMPORTANTE: CREAZIONE ASTA 🔥
+            this.stateManager.recordAction('crea_asta', {
+                articoliCount: articoliSelezionati.length,
+                rialzoMinimo: asta.rialzoMinimo,
+                scadenza: asta.scadenza
+            });
+
+            // Marca che il primo accesso è completato se necessario
+            if (this.stateManager.isFirstAccess()) {
+                this.stateManager.markFirstAccessComplete();
+            }
 
             DOMUtils.showSuccess('✅ Asta creata con successo!');
             this.showVendoPage(); // Ricarica la pagina
@@ -333,28 +351,33 @@ class AsteOnlineApp {
         this.currentPage = 'acquisto';
         DOMUtils.highlightActiveNavButton('btn-acquisto');
 
+        // Registra navigazione alla pagina acquisto
+        this.stateManager.recordAction('naviga_acquisto');
+
         try {
             this.showLoading();
 
             // Carica le aste vinte
             const asteVinte = await this.apiClient.getAsteVinte();
 
-            // Carica le aste visitate (solo se ci sono ID salvati)
+            // Carica le aste visitate dall'ultima sessione
             let asteVisitate = [];
-            const visitedIds = this.stateManager.getVisitedAuctions();
+            const visitedIds = this.stateManager.getVisitedAuctionsFromLastSession();
+
+            console.log('📋 [APP] ID aste visitate da caricare:', visitedIds);
 
             if (visitedIds.length > 0) {
                 try {
-                    asteVisitate = await this.apiClient.getAsteByIds(visitedIds);
+                    // Carica una per una le aste visitate (non abbiamo un endpoint getAsteByIds)
+                    const promises = visitedIds.map(id => this.apiClient.getAstaById(id));
+                    const results = await Promise.allSettled(promises);
 
-                    // Filtra solo le aste ancora aperte
-                    asteVisitate = asteVisitate.filter(asta =>
-                        !asta.chiusa && !DateUtils.isScaduta(asta.scadenza)
-                    );
+                    asteVisitate = results
+                        .filter(result => result.status === 'fulfilled' && result.value)
+                        .map(result => result.value)
+                        .filter(asta => !asta.chiusa && !DateUtils.isScaduta(asta.scadenza));
 
-                    // Pulisci le aste chiuse dalla lista salvata
-                    const activeIds = asteVisitate.map(asta => asta.id);
-                    this.stateManager.cleanupClosedAuctions(activeIds);
+                    console.log('✅ [APP] Aste visitate caricate:', asteVisitate.length);
 
                 } catch (error) {
                     console.warn('⚠️ Errore caricamento aste visitate:', error);
@@ -396,12 +419,12 @@ class AsteOnlineApp {
                 ${risultatiRicerca ? this.generateRisultatiRicerca(risultatiRicerca) : ''}
             </div>
 
-            <!-- Aste visitate -->
+            <!-- Aste visitate dall'ultima sessione -->
             ${asteVisitate.length > 0 ? `
                 <div class="table-container">
-                    <h3>👁️ Aste Visitate Ancora Aperte (${asteVisitate.length})</h3>
+                    <h3>👁️ Aste Visitate nell'Ultimo Accesso (${asteVisitate.length})</h3>
                     <div class="alert alert-info">
-                        📋 Queste sono le aste che hai visitato nell'ultimo mese e che sono ancora aperte.
+                        📋 Queste sono le aste che hai visitato durante il tuo ultimo accesso e che sono ancora aperte.
                     </div>
                     ${this.generateAsteRicercaTable(asteVisitate)}
                 </div>
@@ -419,7 +442,7 @@ class AsteOnlineApp {
                 <div class="alert alert-info">
                     🛒 <strong>Benvenuto nella sezione Acquisto!</strong><br>
                     • Usa il campo di ricerca per trovare aste interessanti<br>
-                    • Le aste che visiti verranno mostrate qui per un mese<br>
+                    • Le aste che visiti verranno mostrate qui al prossimo accesso<br>
                     • Le aste che vinci appariranno nella sezione dedicata
                 </div>
             ` : ''}
@@ -448,11 +471,19 @@ class AsteOnlineApp {
             this.showLoading();
             const aste = await this.apiClient.searchAste(parolaChiave);
 
-            // 🔥 REGISTRA L'AZIONE 🔥
-            this.stateManager.setLastAction('ricerca_aste');
+            // Registra l'azione di ricerca
+            this.stateManager.recordAction('ricerca_aste', {
+                query: parolaChiave,
+                risultati: aste.length
+            });
 
             const risultatiHTML = this.generateRisultatiRicerca(aste, parolaChiave);
             document.getElementById('risultati-ricerca').innerHTML = risultatiHTML;
+
+            // Marca il primo accesso come completato se necessario
+            if (this.stateManager.isFirstAccess()) {
+                this.stateManager.markFirstAccessComplete();
+            }
 
         } catch (error) {
             console.error('❌ Errore ricerca:', error);
@@ -467,13 +498,11 @@ class AsteOnlineApp {
     async mostraDettaglioAsta(astaId) {
         console.log('📋 Caricamento dettaglio asta:', astaId);
 
-        // 🔥 REGISTRA L'AZIONE IMPORTANTE 🔥
-        this.stateManager.setLastAction('mostra_dettaglio_asta');
-
-        // Registra la visita all'asta (solo se siamo in modalità acquisto)
-        if (this.currentPage === 'acquisto') {
-            this.stateManager.addVisitedAuction(astaId);
-        }
+        // Registra la visita all'asta (importante per la lista delle aste visitate)
+        this.stateManager.recordAction('visita_asta', {
+            astaId: astaId,
+            fromPage: this.currentPage
+        });
 
         try {
             this.showLoading();
@@ -487,6 +516,11 @@ class AsteOnlineApp {
             document.getElementById('main-content').innerHTML = dettaglioHTML;
             this.setupDettaglioEventListeners(astaId);
 
+            // Marca il primo accesso come completato se necessario
+            if (this.stateManager.isFirstAccess()) {
+                this.stateManager.markFirstAccessComplete();
+            }
+
         } catch (error) {
             console.error('❌ Errore caricamento dettaglio:', error);
             DOMUtils.showError('❌ Errore nel caricamento: ' + error.message);
@@ -494,7 +528,6 @@ class AsteOnlineApp {
             this.hideLoading();
         }
     }
-
     // ===== GENERAZIONE HTML =====
 
     generateAsteTable(aste, titolo, aperte) {

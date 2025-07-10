@@ -1,0 +1,38 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant StateManager
+    participant APIClient
+    participant OfferteServlet
+    participant OffertaDAO
+    participant AstaDAO
+    participant Database
+
+    User->>Browser: View auction details
+    Browser->>StateManager: addVisitedAuction(auctionId)
+    Browser->>APIClient: Load auction details
+    APIClient->>AsteServlet: GET /api/aste/{id}
+    AsteServlet->>AstaDAO: getById(id)
+    AstaDAO->>Database: SELECT auction data
+    Database-->>AstaDAO: Auction data
+    AstaDAO-->>AsteServlet: Auction object
+    AsteServlet-->>APIClient: Auction JSON
+    APIClient-->>Browser: Display auction
+    Browser-->>User: Show auction details
+
+    User->>Browser: Enter offer amount
+    Browser->>Browser: Validate offer
+    Browser->>APIClient: Submit offer
+    APIClient->>OfferteServlet: POST /api/offerte
+    OfferteServlet->>AstaDAO: getById(astaId)
+    AstaDAO->>Database: Verify auction status
+    Database-->>AstaDAO: Auction data
+    AstaDAO-->>OfferteServlet: Auction valid
+    OfferteServlet->>OffertaDAO: creaOfferta(offerta)
+    OffertaDAO->>Database: INSERT INTO offerte
+    Database-->>OffertaDAO: Offer created
+    OffertaDAO-->>OfferteServlet: Success
+    OfferteServlet-->>APIClient: Success response
+    APIClient-->>Browser: Show success
+    Browser->>StateManager: setLastAction('fai_offerta')
+    Browser-->>User: Offer submitted successfully

@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant StateManager
+    participant APIClient
+    participant AsteServlet
+    participant AstaDAO
+    participant Database
+
+    User->>Browser: Enter search keyword
+    Browser->>APIClient: Submit search
+    APIClient->>AsteServlet: GET /api/aste/search?q=keyword
+    AsteServlet->>AstaDAO: cercaAste(keyword)
+    AstaDAO->>Database: SELECT aste with LIKE query
+    Database-->>AstaDAO: Auction results
+    AstaDAO-->>AsteServlet: List of auctions
+    AsteServlet-->>APIClient: JSON response
+    APIClient-->>Browser: Display results
+    Browser->>StateManager: setLastAction('ricerca_aste')
+    Browser-->>User: Show search results
