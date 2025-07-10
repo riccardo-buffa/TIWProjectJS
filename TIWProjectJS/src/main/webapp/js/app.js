@@ -1066,7 +1066,7 @@ class AsteOnlineApp {
     logout() {
         if (confirm('Sei sicuro di voler uscire?')) {
             // Reset dello stato utente
-            this.stateManager.reset();
+            //this.stateManager.reset();
             this.currentUser = null;
             this.currentPage = null;
 
