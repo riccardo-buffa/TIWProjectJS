@@ -44,30 +44,6 @@ class DateUtils {
         return new Date() > new Date(scadenzaString);
     }
 
-    // Converte data da formato dd-MM-yyyy HH:mm a ISO string
-    static parseDateTime(dateString) {
-        if (!dateString) return null;
-
-        const regex = /^(\d{2})-(\d{2})-(\d{4}) (\d{2}):(\d{2})$/;
-        const match = dateString.match(regex);
-
-        if (!match) return null;
-
-        const [, day, month, year, hours, minutes] = match;
-        return new Date(year, month - 1, day, hours, minutes).toISOString();
-    }
-
-    // Ottiene data/ora corrente nel formato richiesto
-    static getCurrentDateTime() {
-        const now = new Date();
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-
-        return `${day}-${month}-${year} ${hours}:${minutes}`;
-    }
 }
 
 class DOMUtils {
@@ -79,11 +55,6 @@ class DOMUtils {
     // Mostra un messaggio di successo
     static showSuccess(message, container = null) {
         DOMUtils.showMessage(message, 'alert alert-success', container);
-    }
-
-    // Mostra un messaggio informativo
-    static showInfo(message, container = null) {
-        DOMUtils.showMessage(message, 'alert alert-info', container);
     }
 
     // Mostra un messaggio generico
@@ -117,40 +88,6 @@ class DOMUtils {
         }
     }
 
-    // Mostra indicatore di caricamento
-    static showLoading(container) {
-        const loadingEl = document.createElement('div');
-        loadingEl.className = 'loading-indicator';
-        loadingEl.innerHTML = '⏳ Caricamento in corso...';
-        loadingEl.style.cssText = `
-            text-align: center;
-            padding: 20px;
-            font-size: 16px;
-            color: #666;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            margin: 20px 0;
-        `;
-
-        if (container) {
-            container.innerHTML = '';
-            container.appendChild(loadingEl);
-        }
-    }
-
-    // Nascondi indicatore di caricamento
-    static hideLoading(container) {
-        if (container) {
-            const loading = container.querySelector('.loading-indicator');
-            if (loading) loading.remove();
-        }
-    }
-
-    // Conferma azione con l'utente
-    static confirm(message) {
-        return window.confirm(message);
-    }
-
     // Evidenzia pulsante di navigazione attivo
     static highlightActiveNavButton(activeId) {
         // Rimuovi classe active da tutti i pulsanti
@@ -165,35 +102,6 @@ class DOMUtils {
             activeBtn.classList.add('active');
             activeBtn.style.background = 'rgba(255, 255, 255, 0.3)';
         }
-    }
-
-    // Scroll smooth verso un elemento
-    static scrollToElement(elementId) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    // Anima l'apparizione di un elemento
-    static fadeIn(element, duration = 300) {
-        element.style.opacity = 0;
-        element.style.display = 'block';
-
-        const start = performance.now();
-
-        function animate(currentTime) {
-            const elapsed = currentTime - start;
-            const progress = Math.min(elapsed / duration, 1);
-
-            element.style.opacity = progress;
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        }
-
-        requestAnimationFrame(animate);
     }
 }
 
@@ -275,25 +183,6 @@ class ValidationUtils {
         return errors;
     }
 
-    // Valida un'offerta
-    static validateOfferta(offerta, minimaRichiesta) {
-        const errors = [];
-
-        if (!offerta.importo || offerta.importo <= 0) {
-            errors.push("L'importo dell'offerta è obbligatorio");
-        }
-
-        if (offerta.importo < minimaRichiesta) {
-            errors.push(`L'offerta deve essere almeno €${minimaRichiesta.toFixed(2)}`);
-        }
-
-        if (offerta.importo > 999999.99) {
-            errors.push("L'offerta non può superare €999,999.99");
-        }
-
-        return errors;
-    }
-
     // Valida registrazione utente
     static validateRegistration(userData) {
         const errors = [];
@@ -336,12 +225,6 @@ class ValidationUtils {
 
         return errors;
     }
-
-    // Valida email (se necessario in futuro)
-    static validateEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
 }
 
 class FormatUtils {
@@ -351,11 +234,6 @@ class FormatUtils {
         return `€${parseFloat(price).toFixed(2)}`;
     }
 
-    // Formatta un numero con separatori delle migliaia
-    static formatNumber(number) {
-        if (number === null || number === undefined) return '0';
-        return number.toLocaleString('it-IT');
-    }
 
     // Tronca una stringa se troppo lunga
     static truncateString(str, maxLength) {
@@ -363,140 +241,8 @@ class FormatUtils {
         if (str.length <= maxLength) return str;
         return str.substring(0, maxLength) + '...';
     }
-
-    // Genera un badge di stato
-    static generateStatusBadge(isActive, text) {
-        const className = isActive ? 'status-open' : 'status-closed';
-        const emoji = isActive ? '🟢' : '🔴';
-        return `<span class="${className}">${emoji} ${text}</span>`;
-    }
-
-    // Capitalizza la prima lettera di una stringa
-    static capitalize(str) {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    }
-
-    // Formatta bytes in dimensioni leggibili
-    static formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
 }
 
-class StorageUtils {
-    // Salva dati con scadenza in localStorage
-    static saveWithExpiry(key, data, expiryDays = 30) {
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + expiryDays);
-
-        const item = {
-            data: data,
-            expiry: expiryDate.getTime()
-        };
-
-        try {
-            localStorage.setItem(key, JSON.stringify(item));
-            return true;
-        } catch (error) {
-            console.warn('⚠️ Impossibile salvare in localStorage:', error);
-            return false;
-        }
-    }
-
-    // Carica dati verificando scadenza
-    static loadWithExpiry(key) {
-        try {
-            const itemStr = localStorage.getItem(key);
-            if (!itemStr) return null;
-
-            const item = JSON.parse(itemStr);
-            const now = new Date().getTime();
-
-            if (now > item.expiry) {
-                localStorage.removeItem(key);
-                return null;
-            }
-
-            return item.data;
-        } catch (error) {
-            console.warn('⚠️ Errore caricamento da localStorage:', error);
-            localStorage.removeItem(key);
-            return null;
-        }
-    }
-
-    // Rimuovi dati
-    static remove(key) {
-        try {
-            localStorage.removeItem(key);
-        } catch (error) {
-            console.warn('⚠️ Errore rimozione da localStorage:', error);
-        }
-    }
-
-    // Controlla se localStorage è disponibile
-    static isAvailable() {
-        try {
-            const test = '__localStorage_test__';
-            localStorage.setItem(test, test);
-            localStorage.removeItem(test);
-            return true;
-        } catch (error) {
-            return false;
-        }
-    }
-
-    // Ottieni dimensione totale utilizzata da localStorage
-    static getUsedSpace() {
-        let total = 0;
-        for (let key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                total += localStorage[key].length + key.length;
-            }
-        }
-        return total;
-    }
-}
-
-class AnimationUtils {
-    // Anima il conteggio di un numero
-    static animateCounter(element, start, end, duration = 1000) {
-        const range = end - start;
-        const increment = range / (duration / 16);
-        let current = start;
-
-        const timer = setInterval(() => {
-            current += increment;
-            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-                current = end;
-                clearInterval(timer);
-            }
-            element.textContent = Math.round(current);
-        }, 16);
-    }
-
-    // Effetto di shake per errori
-    static shake(element) {
-        element.style.animation = 'shake 0.5s ease-in-out';
-        setTimeout(() => {
-            element.style.animation = '';
-        }, 500);
-    }
-
-    // Effetto di bounce per successi
-    static bounce(element) {
-        element.style.animation = 'bounce 0.6s ease-in-out';
-        setTimeout(() => {
-            element.style.animation = '';
-        }, 600);
-    }
-}
 
 // Aggiungi stili CSS per le animazioni se non presenti
 if (!document.querySelector('#animation-styles')) {
@@ -555,8 +301,6 @@ if (typeof module !== 'undefined' && module.exports) {
         DateUtils,
         DOMUtils,
         ValidationUtils,
-        FormatUtils,
-        StorageUtils,
-        AnimationUtils
+        FormatUtils
     };
 }

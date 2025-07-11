@@ -11,11 +11,11 @@
 <div id="app">
     <!-- Header dell'applicazione -->
     <div class="header">
-        <h1>🎯 Aste Online</h1>
+        <h1>Aste Online</h1>
         <div class="nav-links" id="navigation" style="display: none;">
-            <button id="btn-vendo" class="nav-btn">📦 Vendo</button>
-            <button id="btn-acquisto" class="nav-btn">🛒 Acquisto</button>
-            <button id="btn-logout" class="nav-btn">🚪 Logout</button>
+            <button id="btn-vendo" class="nav-btn">Vendo</button>
+            <button id="btn-acquisto" class="nav-btn">Acquisto</button>
+            <button id="btn-logout" class="nav-btn">Logout</button>
         </div>
     </div>
 
@@ -28,28 +28,28 @@
 
         <!-- Loading indicator -->
         <div id="loading" style="display: none; text-align: center; padding: 50px;">
-            <div class="loading-spinner">⏳ Caricamento in corso...</div>
+            <div class="loading-spinner">Caricamento in corso...</div>
         </div>
 
         <!-- Form di login (mostrato inizialmente) -->
         <div class="login-container" id="login-form">
-            <h1>🎯 Accedi al Sistema</h1>
+            <h1>Accedi al Sistema</h1>
             <p style="text-align: center; color: #666; margin-bottom: 30px;">
                 Il sistema ricorda le tue azioni e preferenze per 30 giorni
             </p>
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="username">👤 Username:</label>
+                    <label for="username"> Username:</label>
                     <input type="text" id="username" name="username" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">🔒 Password:</label>
+                    <label for="password"> Password:</label>
                     <input type="password" id="password" name="password" required>
                 </div>
 
-                <button type="submit" class="btn" style="width: 100%;">🚀 Login</button>
+                <button type="submit" class="btn" style="width: 100%;">Login</button>
             </form>
 
             <div style="text-align: center; margin-top: 20px;">
@@ -59,7 +59,7 @@
             </div>
 
             <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
-                <h4>📋 Account Demo:</h4>
+                <h4>Account Demo:</h4>
                 <p><strong>Username:</strong> admin<br>
                     <strong>Password:</strong> admin123</p>
                 <p><strong>Username:</strong> utente1<br>
@@ -67,7 +67,7 @@
             </div>
 
             <div style="margin-top: 20px; padding: 15px; background-color: #e8f5e8; border-radius: 8px; border-left: 4px solid #27ae60;">
-                <h5>🔄 Comportamento dell'applicazione:</h5>
+                <h5>Comportamento dell'applicazione:</h5>
                 <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
                     <li><strong>Primo accesso:</strong> Mostra pagina ACQUISTO</li>
                     <li><strong>Accessi successivi:</strong> Mostra pagina VENDO se l'ultima azione è stata creare un'asta</li>
@@ -79,10 +79,10 @@
 
         <!-- Form di registrazione (nascosto inizialmente) -->
         <div class="login-container" id="register-form" style="display: none;">
-            <h2>📝 Registrazione</h2>
+            <h2>Registrazione</h2>
 
             <div class="alert alert-info">
-                <h4>📋 Requisiti:</h4>
+                <h4>Requisiti:</h4>
                 <ul>
                     <li>Username unico (min. 3 caratteri)</li>
                     <li>Password min. 6 caratteri</li>
@@ -92,21 +92,21 @@
 
             <form id="registerForm">
                 <div class="form-group">
-                    <label for="reg-username">👤 Username:</label>
+                    <label for="reg-username">Username:</label>
                     <input type="text" id="reg-username" name="username"
                            minlength="3" maxlength="50" required
                            placeholder="Es. mario.rossi">
                 </div>
 
                 <div class="form-group">
-                    <label for="reg-password">🔒 Password:</label>
+                    <label for="reg-password">Password:</label>
                     <input type="password" id="reg-password" name="password"
                            minlength="6" maxlength="100" required
                            placeholder="Almeno 6 caratteri">
                 </div>
 
                 <div class="form-group">
-                    <label for="reg-confirm-password">🔒 Conferma Password:</label>
+                    <label for="reg-confirm-password">Conferma Password:</label>
                     <input type="password" id="reg-confirm-password" name="confirmPassword"
                            minlength="6" maxlength="100" required
                            placeholder="Ripeti la password">
@@ -114,14 +114,14 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label for="reg-nome">🏷️ Nome:</label>
+                        <label for="reg-nome">Nome:</label>
                         <input type="text" id="reg-nome" name="nome"
                                maxlength="50" required
                                placeholder="Es. Mario">
                     </div>
 
                     <div class="form-group">
-                        <label for="reg-cognome">🏷️ Cognome:</label>
+                        <label for="reg-cognome">Cognome:</label>
                         <input type="text" id="reg-cognome" name="cognome"
                                maxlength="50" required
                                placeholder="Es. Rossi">
@@ -129,13 +129,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="reg-indirizzo">📍 Indirizzo:</label>
+                    <label for="reg-indirizzo">Indirizzo:</label>
                     <textarea id="reg-indirizzo" name="indirizzo"
                               maxlength="200" required
                               placeholder="Es. Via Roma 123, 20121 Milano (MI)"></textarea>
                 </div>
 
-                <button type="submit" class="btn">🚀 Registrati</button>
+                <button type="submit" class="btn">Registrati</button>
             </form>
 
             <div style="text-align: center; margin-top: 20px;">

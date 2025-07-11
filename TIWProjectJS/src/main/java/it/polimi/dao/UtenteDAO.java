@@ -23,7 +23,7 @@ public class UtenteDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore login: " + e.getMessage());
+            System.err.println("Errore login: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -46,7 +46,7 @@ public class UtenteDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get utente by ID: " + e.getMessage());
+            System.err.println("Errore get utente by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -68,11 +68,11 @@ public class UtenteDAO {
             stmt.setString(5, utente.getIndirizzo());
 
             int result = stmt.executeUpdate();
-            System.out.println("✅ [DAO] Utente creato: " + utente.getUsername());
+            System.out.println("Utente creato: " + utente.getUsername());
             return result > 0;
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore creazione utente: " + e.getMessage());
+            System.err.println("Errore creazione utente: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -95,7 +95,7 @@ public class UtenteDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore controllo username esistente: " + e.getMessage());
+            System.err.println("Errore controllo username esistente: " + e.getMessage());
             e.printStackTrace();
         }
         return false;

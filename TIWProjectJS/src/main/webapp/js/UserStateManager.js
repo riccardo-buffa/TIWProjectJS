@@ -16,7 +16,6 @@ class UserStateManager {
         try {
             const stored = localStorage.getItem(this.STORAGE_KEY);
             if (!stored) {
-                console.log('📦 [STATE] Nessuno stato precedente trovato - primo accesso');
                 return this.createInitialState();
             }
 
@@ -24,7 +23,6 @@ class UserStateManager {
 
             // Verifica scadenza
             if (parsed.expiry && new Date().getTime() > parsed.expiry) {
-                console.log('⏰ [STATE] Stato scaduto - reset');
                 localStorage.removeItem(this.STORAGE_KEY);
                 return this.createInitialState();
             }
@@ -37,15 +35,9 @@ class UserStateManager {
                 parsed.currentSessionActions = [];
             }
 
-            console.log('📦 [STATE] Stato caricato:', {
-                isFirstAccess: parsed.isFirstAccess,
-                actionHistoryCount: parsed.actionHistory.length,
-                lastAction: parsed.actionHistory.length > 0 ? parsed.actionHistory[parsed.actionHistory.length - 1] : null
-            });
-
             return parsed;
         } catch (error) {
-            console.error('❌ [STATE] Errore caricamento stato:', error);
+            console.error('Errore caricamento stato:', error);
             return this.createInitialState();
         }
     }
@@ -72,12 +64,8 @@ class UserStateManager {
             this.state.expiry = new Date().getTime() + (this.EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
-            console.log('💾 [STATE] Stato salvato:', {
-                actionHistoryCount: this.state.actionHistory.length,
-                currentSessionCount: this.state.currentSessionActions.length
-            });
         } catch (error) {
-            console.error('❌ [STATE] Errore salvataggio stato:', error);
+            console.error('Errore salvataggio stato:', error);
         }
     }
 
@@ -85,7 +73,6 @@ class UserStateManager {
      * Registra che l'utente ha effettuato il primo accesso
      */
     markFirstAccessComplete() {
-        console.log('🆕 [STATE] Primo accesso completato');
         this.state.isFirstAccess = false;
         // Salva le azioni della sessione corrente come storia
         this.state.actionHistory = [...this.state.currentSessionActions];
@@ -109,13 +96,6 @@ class UserStateManager {
 
         // Aggiungi all'elenco delle azioni della sessione corrente
         this.state.currentSessionActions.push(action);
-
-        //console.log('📝 [STATE] Azione registrata:', actionType, data);
-
-        // Se è una visita ad un'asta, tieni traccia anche nell'array separato per retrocompatibilità
-        /*if (actionType === 'visita_asta' && data.astaId) {
-            this.addVisitedAuction(data.astaId);
-        }*/
 
         this.saveState();
     }
@@ -169,7 +149,6 @@ class UserStateManager {
             }
         }
 
-        console.log('👁️ [STATE] Aste visitate nell\'ultima sessione:', visitedAuctions);
         return visitedAuctions;
     }
 
@@ -177,11 +156,9 @@ class UserStateManager {
      * Determina quale pagina mostrare all'avvio
      */
     determineInitialPage() {
-        console.log('🎯 [STATE] Determinazione pagina iniziale...');
 
         // Primo accesso → ACQUISTO
         if (this.isFirstAccess()) {
-            console.log('🎯 [STATE] Primo accesso → ACQUISTO');
             return 'acquisto';
         }
 
@@ -189,20 +166,16 @@ class UserStateManager {
         const lastAction = this.getLastAction();
 
         if (!lastAction) {
-            console.log('🎯 [STATE] Nessuna azione precedente → ACQUISTO');
             return 'acquisto';
         }
 
-        console.log('🎯 [STATE] Ultima azione:', lastAction.type);
 
         // Se l'ultima azione è stata creare un'asta → VENDO
         if (lastAction.type === 'crea_asta') {
-            console.log('🎯 [STATE] Ultima azione = crea_asta → VENDO');
             return 'vendo';
         }
 
         // Altrimenti → ACQUISTO
-        console.log('🎯 [STATE] Altra azione → ACQUISTO');
         return 'acquisto';
     }
 
@@ -210,7 +183,6 @@ class UserStateManager {
      * Inizia una nuova sessione (chiamato al login)
      */
     startNewSession() {
-        console.log('🔄 [STATE] Nuova sessione iniziata');
 
         // Assicurati che gli array esistano
         if (!this.state.currentSessionActions) {
@@ -235,7 +207,6 @@ class UserStateManager {
      * Termina la sessione corrente (chiamato al logout)
      */
     endSession() {
-        console.log('🔚 [STATE] Sessione terminata');
 
         // Assicurati che gli array esistano
         if (!this.state.currentSessionActions) {
@@ -292,22 +263,5 @@ class UserStateManager {
     reset() {
         localStorage.removeItem(this.STORAGE_KEY);
         this.state = this.createInitialState();
-        console.log('🔄 [STATE] Stato resettato completamente');
-    }
-
-    /**
-     * Esporta lo stato per debugging
-     */
-    exportState() {
-        return JSON.stringify(this.state, null, 2);
-    }
-
-    /**
-     * Debug: mostra tutte le azioni
-     */
-    debugActions() {
-        console.log('📋 [STATE DEBUG] Storia azioni:', this.state.actionHistory || []);
-        console.log('📋 [STATE DEBUG] Azioni sessione corrente:', this.state.currentSessionActions || []);
-        console.log('📋 [STATE DEBUG] Riepilogo:', this.getActionsSummary());
     }
 }

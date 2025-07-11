@@ -54,7 +54,7 @@ public class AstaDAO {
             }
 
             conn.commit();
-            System.out.println("✅ [DAO] Asta creata con successo: ID " + astaId);
+            System.out.println("Asta creata con successo: ID " + astaId);
             return true;
 
         } catch (SQLException e) {
@@ -65,7 +65,7 @@ public class AstaDAO {
                     ex.printStackTrace();
                 }
             }
-            System.err.println("❌ [DAO] Errore creazione asta: " + e.getMessage());
+            System.err.println("Errore creazione asta: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
@@ -106,7 +106,7 @@ public class AstaDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get aste by venditore: " + e.getMessage());
+            System.err.println("Errore get aste by venditore: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -145,7 +145,7 @@ public class AstaDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore cerca aste: " + e.getMessage());
+            System.err.println("Errore cerca aste: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -174,7 +174,7 @@ public class AstaDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get asta by ID: " + e.getMessage());
+            System.err.println("Errore get asta by ID: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -187,8 +187,8 @@ public class AstaDAO {
     public boolean chiudiAsta(int astaId, Integer vincitoreId, Double prezzoFinale) {
         String sql = "UPDATE aste SET chiusa = TRUE, vincitore_id = ?, prezzo_finale = ? WHERE id = ?";
 
-        System.out.println("💾 [DAO] ===== INIZIO CHIUSURA ASTA DATABASE =====");
-        System.out.println("💾 [DAO] Parametri ricevuti:");
+        System.out.println("===== INIZIO CHIUSURA ASTA DATABASE =====");
+        System.out.println("Parametri ricevuti:");
         System.out.println("   - Asta ID: " + astaId);
         System.out.println("   - Vincitore ID: " + vincitoreId);
         System.out.println("   - Prezzo finale: " + prezzoFinale);
@@ -199,7 +199,7 @@ public class AstaDAO {
         try {
             // Ottieni connessione
             conn = DatabaseConnection.getConnection();
-            System.out.println("✅ [DAO] Connessione database ottenuta");
+            System.out.println("Connessione database ottenuta");
 
             // Verifica stato asta prima dell'aggiornamento
             String checkSql = "SELECT id, chiusa, vincitore_id, prezzo_finale FROM aste WHERE id = ?";
@@ -207,13 +207,13 @@ public class AstaDAO {
                 checkStmt.setInt(1, astaId);
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next()) {
-                        System.out.println("🔍 [DAO] Stato asta PRIMA dell'aggiornamento:");
+                        System.out.println("Stato asta PRIMA dell'aggiornamento:");
                         System.out.println("   - ID: " + rs.getInt("id"));
                         System.out.println("   - Chiusa: " + rs.getBoolean("chiusa"));
                         System.out.println("   - Vincitore ID: " + rs.getObject("vincitore_id"));
                         System.out.println("   - Prezzo finale: " + rs.getObject("prezzo_finale"));
                     } else {
-                        System.err.println("❌ [DAO] ERRORE: Asta con ID " + astaId + " non trovata!");
+                        System.err.println("ERRORE: Asta con ID " + astaId + " non trovata!");
                         return false;
                     }
                 }
@@ -221,42 +221,42 @@ public class AstaDAO {
 
             // Prepara statement per l'update
             stmt = conn.prepareStatement(sql);
-            System.out.println("✅ [DAO] PreparedStatement creato: " + sql);
+            System.out.println("PreparedStatement creato: " + sql);
 
             // Imposta i parametri
             if (vincitoreId != null && vincitoreId > 0) {
                 stmt.setInt(1, vincitoreId);
-                System.out.println("✅ [DAO] Parametro 1 (vincitore_id): " + vincitoreId + " (INT)");
+                System.out.println("Parametro 1 (vincitore_id): " + vincitoreId + " (INT)");
             } else {
                 stmt.setNull(1, java.sql.Types.INTEGER);
-                System.out.println("✅ [DAO] Parametro 1 (vincitore_id): NULL");
+                System.out.println("Parametro 1 (vincitore_id): NULL");
             }
 
             if (prezzoFinale != null && prezzoFinale > 0) {
                 stmt.setDouble(2, prezzoFinale);
-                System.out.println("✅ [DAO] Parametro 2 (prezzo_finale): " + prezzoFinale + " (DOUBLE)");
+                System.out.println("Parametro 2 (prezzo_finale): " + prezzoFinale + " (DOUBLE)");
             } else {
                 stmt.setNull(2, java.sql.Types.DOUBLE);
-                System.out.println("✅ [DAO] Parametro 2 (prezzo_finale): NULL");
+                System.out.println("Parametro 2 (prezzo_finale): NULL");
             }
 
             stmt.setInt(3, astaId);
-            System.out.println("✅ [DAO] Parametro 3 (id): " + astaId + " (INT)");
+            System.out.println("Parametro 3 (id): " + astaId + " (INT)");
 
             // Esegui l'update
-            System.out.println("⚡ [DAO] Esecuzione UPDATE...");
+            System.out.println("Esecuzione UPDATE...");
             int rowsAffected = stmt.executeUpdate();
-            System.out.println("📊 [DAO] Righe modificate: " + rowsAffected);
+            System.out.println("Righe modificate: " + rowsAffected);
 
             if (rowsAffected > 0) {
-                System.out.println("✅ [DAO] UPDATE eseguito con successo");
+                System.out.println("UPDATE eseguito con successo");
 
                 // Verifica immediata del risultato
                 try (PreparedStatement verifyStmt = conn.prepareStatement(checkSql)) {
                     verifyStmt.setInt(1, astaId);
                     try (ResultSet rs = verifyStmt.executeQuery()) {
                         if (rs.next()) {
-                            System.out.println("🔍 [DAO] Stato asta DOPO l'aggiornamento:");
+                            System.out.println("Stato asta DOPO l'aggiornamento:");
                             System.out.println("   - ID: " + rs.getInt("id"));
                             System.out.println("   - Chiusa: " + rs.getBoolean("chiusa"));
                             System.out.println("   - Vincitore ID: " + rs.getObject("vincitore_id"));
@@ -269,39 +269,39 @@ public class AstaDAO {
 
                             boolean coerente = true;
                             if (!chiusaOk) {
-                                System.err.println("❌ [DAO] ERRORE: asta non risulta chiusa!");
+                                System.err.println("ERRORE: asta non risulta chiusa!");
                                 coerente = false;
                             }
 
                             if (vincitoreId == null && vincitoreDb != null) {
-                                System.err.println("❌ [DAO] ERRORE: vincitore doveva essere NULL ma è: " + vincitoreDb);
+                                System.err.println("ERRORE: vincitore doveva essere NULL ma è: " + vincitoreDb);
                                 coerente = false;
                             } else if (vincitoreId != null && !vincitoreId.equals(vincitoreDb)) {
-                                System.err.println("❌ [DAO] ERRORE: vincitore non corrisponde. Expected: " + vincitoreId + ", Found: " + vincitoreDb);
+                                System.err.println("ERRORE: vincitore non corrisponde. Expected: " + vincitoreId + ", Found: " + vincitoreDb);
                                 coerente = false;
                             }
 
                             if (prezzoFinale == null && prezzoDb != null) {
-                                System.err.println("❌ [DAO] ERRORE: prezzo doveva essere NULL ma è: " + prezzoDb);
+                                System.err.println("ERRORE: prezzo doveva essere NULL ma è: " + prezzoDb);
                                 coerente = false;
                             } else if (prezzoFinale != null && prezzoDb != null && Math.abs(prezzoFinale - ((Number)prezzoDb).doubleValue()) > 0.01) {
-                                System.err.println("❌ [DAO] ERRORE: prezzo non corrisponde. Expected: " + prezzoFinale + ", Found: " + prezzoDb);
+                                System.err.println("ERRORE: prezzo non corrisponde. Expected: " + prezzoFinale + ", Found: " + prezzoDb);
                                 coerente = false;
                             }
 
                             if (coerente) {
-                                System.out.println("✅ [DAO] Verifica coerenza: SUCCESSO");
+                                System.out.println("Verifica coerenza: SUCCESSO");
                                 return true;
                             } else {
-                                System.err.println("❌ [DAO] Verifica coerenza: FALLITA");
+                                System.err.println("Verifica coerenza: FALLITA");
                                 return false;
                             }
                         }
                     }
                 }
             } else {
-                System.err.println("❌ [DAO] ERRORE: Nessuna riga modificata!");
-                System.err.println("❌ [DAO] Possibili cause:");
+                System.err.println("ERRORE: Nessuna riga modificata!");
+                System.err.println("Possibili cause:");
                 System.err.println("   - Asta con ID " + astaId + " non esiste");
                 System.err.println("   - Asta già chiusa");
                 System.err.println("   - Condizione WHERE non soddisfatta");
@@ -309,15 +309,15 @@ public class AstaDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] ===== ECCEZIONE SQL =====");
-            System.err.println("❌ [DAO] Messaggio: " + e.getMessage());
-            System.err.println("❌ [DAO] SQLState: " + e.getSQLState());
-            System.err.println("❌ [DAO] ErrorCode: " + e.getErrorCode());
+            System.err.println("===== ECCEZIONE SQL =====");
+            System.err.println("Messaggio: " + e.getMessage());
+            System.err.println("SQLState: " + e.getSQLState());
+            System.err.println("ErrorCode: " + e.getErrorCode());
             e.printStackTrace();
             return false;
         } catch (Exception e) {
-            System.err.println("❌ [DAO] ===== ECCEZIONE GENERICA =====");
-            System.err.println("❌ [DAO] Messaggio: " + e.getMessage());
+            System.err.println("===== ECCEZIONE GENERICA =====");
+            System.err.println("Messaggio: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
@@ -325,22 +325,22 @@ public class AstaDAO {
             if (stmt != null) {
                 try {
                     stmt.close();
-                    System.out.println("🔒 [DAO] PreparedStatement chiuso");
+                    System.out.println("PreparedStatement chiuso");
                 } catch (SQLException e) {
-                    System.err.println("⚠️ [DAO] Errore chiusura statement: " + e.getMessage());
+                    System.err.println("Errore chiusura statement: " + e.getMessage());
                 }
             }
             if (conn != null) {
                 try {
                     conn.close();
-                    System.out.println("🔒 [DAO] Connessione chiusa");
+                    System.out.println("Connessione chiusa");
                 } catch (SQLException e) {
-                    System.err.println("⚠️ [DAO] Errore chiusura connessione: " + e.getMessage());
+                    System.err.println("Errore chiusura connessione: " + e.getMessage());
                 }
             }
         }
 
-        System.out.println("💾 [DAO] ===== FINE CHIUSURA ASTA DATABASE =====");
+        System.out.println("===== FINE CHIUSURA ASTA DATABASE =====");
         return false;
     }
 
@@ -373,17 +373,17 @@ public class AstaDAO {
                     // Verifica che sia effettivamente vinta dall'utente
                     if (asta.getVincitoreId() != null && asta.getVincitoreId() == utenteId && asta.isChiusa()) {
                         aste.add(asta);
-                        System.out.println("🏆 [DAO] Asta vinta caricata: ID " + asta.getId() +
+                        System.out.println("Asta vinta caricata: ID " + asta.getId() +
                                 " - Prezzo finale: €" + asta.getPrezzoFinale() +
                                 " - Vincitore: " + utenteId);
                     }
                 }
             }
 
-            System.out.println("✅ [DAO] Caricate " + aste.size() + " aste vinte per utente " + utenteId);
+            System.out.println("Caricate " + aste.size() + " aste vinte per utente " + utenteId);
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get aste vinte: " + e.getMessage());
+            System.err.println("Errore get aste vinte: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -421,7 +421,7 @@ public class AstaDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get articoli by asta: " + e.getMessage());
+            System.err.println("Errore get articoli by asta: " + e.getMessage());
             e.printStackTrace();
         }
 

@@ -23,11 +23,11 @@ public class OffertaDAO {
             stmt.setDouble(3, offerta.getImporto());  // DOUBLE non BigDecimal!
 
             int result = stmt.executeUpdate();
-            System.out.println("✅ [DAO] Offerta creata: €" + offerta.getImporto() + " per asta " + offerta.getAstaId());
+            System.out.println("Offerta creata: €" + offerta.getImporto() + " per asta " + offerta.getAstaId());
             return result > 0;
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore creazione offerta: " + e.getMessage());
+            System.err.println("Errore creazione offerta: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -59,10 +59,10 @@ public class OffertaDAO {
                 }
             }
 
-            System.out.println("✅ [DAO] Caricate " + offerte.size() + " offerte per asta " + astaId + " (ordinate per importo)");
+            System.out.println("Caricate " + offerte.size() + " offerte per asta " + astaId + " (ordinate per importo)");
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get offerte by asta: " + e.getMessage());
+            System.err.println("Errore get offerte by asta: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -91,25 +91,25 @@ public class OffertaDAO {
                     int numOfferte = rs.getInt("num_offerte");
                     boolean isNull = rs.wasNull();
 
-                    System.out.println("📊 [DAO] Asta " + astaId + " - Offerte totali: " + numOfferte +
+                    System.out.println("Asta " + astaId + " - Offerte totali: " + numOfferte +
                             ", Massima: " + (isNull ? "NULL" : "€" + maxOfferta));
 
                     if (!isNull && numOfferte > 0) {
-                        System.out.println("✅ [DAO] Offerta massima trovata: €" + maxOfferta);
+                        System.out.println("Offerta massima trovata: €" + maxOfferta);
                         return maxOfferta;
                     } else {
-                        System.out.println("📭 [DAO] Nessuna offerta valida trovata per asta " + astaId);
+                        System.out.println("Nessuna offerta valida trovata per asta " + astaId);
                         return null;
                     }
                 }
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get offerta massima per asta " + astaId + ": " + e.getMessage());
+            System.err.println("Errore get offerta massima per asta " + astaId + ": " + e.getMessage());
             e.printStackTrace();
         }
 
-        System.out.println("❌ [DAO] Nessun risultato per asta " + astaId);
+        System.out.println("Nessun risultato per asta " + astaId);
         return null;
     }
 
@@ -136,18 +136,18 @@ public class OffertaDAO {
                     double importo = rs.getDouble("importo");
                     java.sql.Timestamp dataOfferta = rs.getTimestamp("data_offerta");
 
-                    System.out.println("🏆 [DAO] Vincitore trovato per asta " + astaId +
+                    System.out.println("Vincitore trovato per asta " + astaId +
                             ": utente ID " + vincitoreId +
                             " con offerta €" + importo +
                             " del " + dataOfferta);
                     return vincitoreId;
                 } else {
-                    System.out.println("📭 [DAO] Nessuna offerta trovata per asta " + astaId);
+                    System.out.println("Nessuna offerta trovata per asta " + astaId);
                 }
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ [DAO] Errore get vincitore per asta " + astaId + ": " + e.getMessage());
+            System.err.println("Errore get vincitore per asta " + astaId + ": " + e.getMessage());
             e.printStackTrace();
         }
 
