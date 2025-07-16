@@ -78,7 +78,7 @@ public class OffertaDAO {
     public Double getOffertaMassima(int astaId) {
         String sql = "SELECT MAX(importo) as max_offerta, COUNT(*) as num_offerte FROM offerte WHERE asta_id = ?";
 
-        System.out.println("🔍 [DAO] Ricerca offerta massima per asta " + astaId);
+        System.out.println(" Ricerca offerta massima per asta " + astaId);
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -123,7 +123,7 @@ public class OffertaDAO {
                 "ORDER BY importo DESC, data_offerta ASC " +  // Prima il più alto, poi il più vecchio
                 "LIMIT 1";
 
-        System.out.println("🔍 [DAO] Ricerca vincitore per asta " + astaId);
+        System.out.println(" Ricerca vincitore per asta " + astaId);
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

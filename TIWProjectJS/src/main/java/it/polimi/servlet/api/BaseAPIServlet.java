@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.time.LocalDateTime;
@@ -207,9 +209,32 @@ public abstract class BaseAPIServlet extends HttpServlet {
      * Log per errori
      */
     protected void logError(String message, Exception e) {
-        System.err.println("❌ [API Error] " + message);
+        System.err.println(" [API Error] " + message);
         if (e != null) {
             e.printStackTrace();
         }
+    }
+    /**
+     * Crea una directory se non esiste
+     */
+    protected boolean createDirectoryIfNotExists(String path) {
+        File directory = new File(path);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (created) {
+                logInfo("Directory creata: " + path);
+            } else {
+                logError("Impossibile creare directory: " + path, null);
+            }
+            return created;
+        }
+        return true;
+    }
+
+    /**
+     * Ottiene il path assoluto della webapp
+     */
+    protected String getWebappPath(HttpServletRequest request) {
+        return request.getServletContext().getRealPath("");
     }
 }

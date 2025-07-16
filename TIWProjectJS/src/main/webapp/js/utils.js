@@ -89,6 +89,7 @@ class DOMUtils {
     }
 
     // Evidenzia pulsante di navigazione attivo
+    //activeID = id pulsante premuto
     static highlightActiveNavButton(activeId) {
         // Rimuovi classe active da tutti i pulsanti
         document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -234,7 +235,6 @@ class FormatUtils {
         return `€${parseFloat(price).toFixed(2)}`;
     }
 
-
     // Tronca una stringa se troppo lunga
     static truncateString(str, maxLength) {
         if (!str) return '';
@@ -250,8 +250,23 @@ class FormatUtils {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
-}
 
+    // Valida un file immagine
+    static validateImageFile(file) {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        if (!allowedTypes.includes(file.type)) {
+            return 'Formato file non supportato. Usa JPG, PNG, GIF o WEBP.';
+        }
+
+        if (file.size > maxSize) {
+            return 'Il file è troppo grande. Massimo 10MB.';
+        }
+
+        return null; // Nessun errore
+    }
+}
 
 // Aggiungi stili CSS per le animazioni se non presenti
 if (!document.querySelector('#animation-styles')) {

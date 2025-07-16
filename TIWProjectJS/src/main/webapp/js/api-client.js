@@ -16,6 +16,7 @@ class APIClient {
     }
 
     // Metodo generico per le chiamate HTTP
+    //endpoint = a che servlet richiedi
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const isLoginRequest = endpoint === '/login';
@@ -27,12 +28,14 @@ class APIClient {
             ...options
         };
 
-        if (config.body && !(config.body instanceof FormData)) {
+        // Per FormData, non impostare Content-Type (il browser lo imposta automaticamente)
+        if (config.body instanceof FormData) {
+            delete config.headers['Content-Type'];
+        } else if (config.body && !(config.body instanceof FormData)) {
             config.body = JSON.stringify(config.body);
         }
 
         try {
-
             const response = await fetch(url, config);
 
             // Per le richieste di login, 401 è normale se le credenziali sono sbagliate
@@ -108,6 +111,8 @@ class APIClient {
         });
     }
 
+    // ===== ARTICOLI =====
+
     async createArticolo(articolo) {
         // Se c'è un file immagine, usa FormData
         if (articolo.immagine instanceof File) {
@@ -134,12 +139,6 @@ class APIClient {
 
     async getArticoliDisponibili() {
         return this.request('/articoli/disponibili');
-    }
-
-    async getArticoliByIds(ids) {
-        if (!ids || ids.length === 0) return [];
-        const idsParam = ids.join(',');
-        return this.request(`/articoli?ids=${idsParam}`);
     }
 
     // ===== ASTE =====
@@ -192,5 +191,4 @@ class APIClient {
     async getOfferteByAsta(astaId) {
         return this.request(`/offerte/asta/${astaId}`);
     }
-
 }

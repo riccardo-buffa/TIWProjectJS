@@ -35,7 +35,7 @@ class AsteOnlineApp {
 
 
         try {
-            this.showLoading();
+            //this.showLoading();
             const userData = await this.apiClient.login(username, password);
 
             this.currentUser = userData;
@@ -75,7 +75,7 @@ class AsteOnlineApp {
         }
 
         try {
-            this.showLoading();
+            //this.showLoading();
             await this.apiClient.register(userData);
 
             DOMUtils.showSuccess('Registrazione completata! Ora puoi accedere.');
@@ -143,7 +143,7 @@ class AsteOnlineApp {
         this.stateManager.recordAction('naviga_vendo');
 
         try {
-            this.showLoading();
+            //this.showLoading();
 
             // Carica dati per la pagina Vendo
             const [asteAperte, asteChiuse, articoli] = await Promise.all([
@@ -257,6 +257,12 @@ class AsteOnlineApp {
         if (formAsta) {
             formAsta.addEventListener('submit', (e) => this.handleCreaAsta(e));
         }
+
+        // Preview immagine
+        const inputImmagine = document.getElementById('immagine');
+        if (inputImmagine) {
+            inputImmagine.addEventListener('change', (e) => this.handleImagePreview(e));
+        }
     }
 
     async handleCreaArticolo(event) {
@@ -278,7 +284,7 @@ class AsteOnlineApp {
         }
 
         try {
-            this.showLoading();
+            //this.showLoading();
             await this.apiClient.createArticolo(articolo);
 
             // Registra l'azione
@@ -318,7 +324,7 @@ class AsteOnlineApp {
         }
 
         try {
-            this.showLoading();
+            //this.showLoading();
             await this.apiClient.createAsta(asta);
 
             this.stateManager.recordAction('crea_asta', {
@@ -351,7 +357,7 @@ class AsteOnlineApp {
         this.stateManager.recordAction('naviga_acquisto');
 
         try {
-            this.showLoading();
+            //this.showLoading();
 
             // Carica le aste vinte
             const asteVinte = await this.apiClient.getAsteVinte();
@@ -460,7 +466,7 @@ class AsteOnlineApp {
         }
 
         try {
-            this.showLoading();
+            //this.showLoading();
             const aste = await this.apiClient.searchAste(parolaChiave);
 
             // Registra l'azione di ricerca
@@ -496,7 +502,7 @@ class AsteOnlineApp {
         });
 
         try {
-            this.showLoading();
+            //this.showLoading();
 
             const [asta, offerte] = await Promise.all([
                 this.apiClient.getAstaById(astaId),
@@ -846,7 +852,7 @@ class AsteOnlineApp {
     async mostraFormOfferta(astaId) {
 
         try {
-            this.showLoading();
+            //this.showLoading();
 
             const [asta, offerte] = await Promise.all([
                 this.apiClient.getAstaById(astaId),
@@ -880,19 +886,29 @@ class AsteOnlineApp {
     generateFormOfferta(asta, offerte, minimaRichiesta) {
         return `
             <div class="form-container">
-                <h2>Fai Offerta - Asta #${asta.id}</h2>
+                <h2> Fai Offerta - Asta #${asta.id}</h2>
                 
                 <!-- Articoli in asta -->
                 <div class="form-group">
-                    <label>Articoli in Asta:</label>
+                    <label> Articoli in Asta:</label>
                     ${asta.articoli.map(art => `
                         <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f9f9f9;">
                             <h4 style="color: #2c3e50; margin-bottom: 10px;">
                                 ${art.codice} - ${art.nome}
                             </h4>
                             <p style="margin-bottom: 10px;">${art.descrizione}</p>
+                            ${art.immagine ? `
+                                <div style="text-align: center; margin: 10px 0;">
+                                    <img src="uploads/images/${art.immagine}" alt="${art.nome}" class="article-image"
+                                         style="max-width: 200px; height: auto; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                </div>
+                            ` : `
+                                <div class="image-placeholder" style="text-align: center; margin: 10px 0; padding: 15px; background: #f5f5f5; border: 2px dashed #ddd; border-radius: 5px; color: #999;">
+                                     Nessuna immagine
+                                </div>
+                            `}
                             <p style="font-size: 16px; font-weight: bold; color: #27ae60;">
-                                Prezzo base: ${FormatUtils.formatPrice(art.prezzo)}
+                                 Prezzo base: ${FormatUtils.formatPrice(art.prezzo)}
                             </p>
                         </div>
                     `).join('')}
@@ -901,19 +917,19 @@ class AsteOnlineApp {
                 <!-- Informazioni offerta -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
                     <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px;">
-                        <strong>Offerta Attuale:</strong>
+                        <strong> Offerta Attuale:</strong>
                         <p style="font-size: 20px; font-weight: bold; color: #27ae60; margin: 5px 0;">
                             ${FormatUtils.formatPrice(asta.offertaMassima || asta.prezzoIniziale)}
                         </p>
                     </div>
                     <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px;">
-                        <strong>Offerta Minima:</strong>
+                        <strong> Offerta Minima:</strong>
                         <p style="font-size: 20px; font-weight: bold; color: #e74c3c; margin: 5px 0;">
                             ${FormatUtils.formatPrice(minimaRichiesta)}
                         </p>
                     </div>
                     <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px;">
-                        <strong>Scadenza:</strong>
+                        <strong> Scadenza:</strong>
                         <p style="font-size: 16px; font-weight: bold; margin: 5px 0;">
                             ${DateUtils.formatDateTime(asta.scadenza)}
                         </p>
@@ -926,7 +942,7 @@ class AsteOnlineApp {
                 <!-- Form offerta -->
                 <form id="form-offerta">
                     <div class="form-group">
-                        <label for="importo-offerta">La tua Offerta (€):</label>
+                        <label for="importo-offerta"> La tua Offerta (€):</label>
                         <input type="number" step="0.01" id="importo-offerta" name="importo"
                                min="${minimaRichiesta.toFixed(2)}" 
                                placeholder="${minimaRichiesta.toFixed(2)}"
@@ -934,7 +950,7 @@ class AsteOnlineApp {
                         <small>L'offerta deve essere almeno ${FormatUtils.formatPrice(minimaRichiesta)}</small>
                     </div>
                     <button type="submit" class="btn btn-success" style="font-size: 18px; padding: 15px 30px;">
-                        Invia Offerta
+                         Invia Offerta
                     </button>
                 </form>
             </div>
@@ -942,13 +958,13 @@ class AsteOnlineApp {
             <!-- Cronologia offerte -->
             ${offerte && offerte.length > 0 ? `
                 <div class="table-container">
-                    <h3>Cronologia Offerte (${offerte.length})</h3>
+                    <h3> Cronologia Offerte (${offerte.length})</h3>
                     <table>
                         <tr>
-                            <th>Offerente</th>
-                            <th>Importo</th>
-                            <th>Data/Ora</th>
-                            <th>Posizione</th>
+                            <th> Offerente</th>
+                            <th> Importo</th>
+                            <th> Data/Ora</th>
+                            <th> Posizione</th>
                         </tr>
                         ${offerte.map((offerta, i) => `
                             <tr ${i === 0 ? 'style="background-color: #f0f8ff; font-weight: bold;"' : ''}>
@@ -967,7 +983,7 @@ class AsteOnlineApp {
                                 <td>${DateUtils.formatDateTime(offerta.dataOfferta)}</td>
                                 <td>
                                     ${i === 0 ?
-            '<span class="status-open">Vincente</span>' :
+            '<span class="status-open"> Vincente</span>' :
             `#${i + 1}`
         }
                                 </td>
@@ -977,7 +993,7 @@ class AsteOnlineApp {
                 </div>
             ` : `
                 <div class="alert alert-info">
-                    <strong>Nessuna offerta ancora ricevuta.</strong> Sii il primo a fare un'offerta!
+                    <strong> Nessuna offerta ancora ricevuta.</strong> Sii il primo a fare un'offerta!
                 </div>
             `}
 
@@ -988,7 +1004,6 @@ class AsteOnlineApp {
             </div>
         `;
     }
-
     setupFormOffertaEventListeners(astaId, minimaRichiesta) {
         const formOfferta = document.getElementById('form-offerta');
         if (formOfferta) {
@@ -1012,7 +1027,7 @@ class AsteOnlineApp {
         }
 
         try {
-            this.showLoading();
+            //this.showLoading();
 
             await this.apiClient.createOfferta({
                 astaId: astaId,
@@ -1045,7 +1060,7 @@ class AsteOnlineApp {
         }
 
         try {
-            this.showLoading();
+            //this.showLoading();
             await this.apiClient.chiudiAsta(astaId);
 
             // Registra l'azione di chiusura asta
