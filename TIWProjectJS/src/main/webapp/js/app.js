@@ -171,7 +171,7 @@ class AsteOnlineApp {
             <!-- Form per creare nuovo articolo -->
             <div class="form-container">
                 <h2>Crea Nuovo Articolo</h2>
-                <form id="form-articolo">
+                <form id="form-articolo" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="codice">Codice:</label>
                         <input type="text" id="codice" name="codice" placeholder="Es. ART001" required>
@@ -183,6 +183,12 @@ class AsteOnlineApp {
                     <div class="form-group">
                         <label for="descrizione">Descrizione:</label>
                         <textarea id="descrizione" name="descrizione" rows="3" placeholder="Descrizione dettagliata..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="immagine">Immagine (opzionale):</label>
+                        <input type="file" id="immagine" name="immagine" accept="image/*">
+                        <small style="color: #666;">Formati supportati: JPG, PNG, GIF, WEBP (max 10MB)</small>
+                        <div id="image-preview" style="margin-top: 10px;"></div>
                     </div>
                     <div class="form-group">
                         <label for="prezzo">Prezzo (€):</label>

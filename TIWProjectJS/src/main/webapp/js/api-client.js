@@ -108,13 +108,28 @@ class APIClient {
         });
     }
 
-    // ===== ARTICOLI =====
-
     async createArticolo(articolo) {
-        return this.request('/articoli', {
-            method: 'POST',
-            body: articolo
-        });
+        // Se c'è un file immagine, usa FormData
+        if (articolo.immagine instanceof File) {
+            const formData = new FormData();
+            formData.append('codice', articolo.codice);
+            formData.append('nome', articolo.nome);
+            formData.append('descrizione', articolo.descrizione);
+            formData.append('prezzo', articolo.prezzo.toString());
+            formData.append('immagine', articolo.immagine);
+
+            return this.request('/articoli', {
+                method: 'POST',
+                body: formData,
+                headers: {} // Rimuovi Content-Type per FormData
+            });
+        } else {
+            // Altrimenti usa JSON (backward compatibility)
+            return this.request('/articoli', {
+                method: 'POST',
+                body: articolo
+            });
+        }
     }
 
     async getArticoliDisponibili() {

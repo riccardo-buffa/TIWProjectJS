@@ -5,6 +5,7 @@ import it.polimi.model.Articolo;
 import it.polimi.model.Utente;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +16,11 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @WebServlet(name = "ArticoliAPIServlet", urlPatterns = {"/api/articoli", "/api/articoli/*"})
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024 * 1,    // 1 MB
+        maxFileSize = 1024 * 1024 * 10,         // 10 MB
+        maxRequestSize = 1024 * 1024 * 15       // 15 MB
+)
 public class ArticoliAPIServlet extends BaseAPIServlet {
     private ArticoloDAO articoloDAO = new ArticoloDAO();
 
